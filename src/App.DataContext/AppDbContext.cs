@@ -12,4 +12,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     public AppDbContext(DbContextOptions options) : base(options)
     {
     }
+
+    public DbSet<Sample> Samples { get; set; }
+    public DbSet<ChildSample> ChildSamples { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<Sample>()
+            .HasMany(s => s.ChildSamples)
+            .WithOne(c => c.Sample)
+            .HasForeignKey(c => c.SampleId);
+
+        base.OnModelCreating(builder);
+    }
 }

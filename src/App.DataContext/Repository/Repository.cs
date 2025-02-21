@@ -53,4 +53,9 @@ public class Repository<T> : IRepository<T> where T : BaseModel
 
         return await query.FirstOrDefaultAsync(e => e.Id == id);
     }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 }
