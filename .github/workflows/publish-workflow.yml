@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: hackaweb
-  CONTAINER_APP_NAME: dmte
+  CONTAINER_APP_NAME: dmtr
   RESOURCE_GROUP: app
 
 jobs:
