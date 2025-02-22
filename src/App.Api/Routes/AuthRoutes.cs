@@ -49,8 +49,20 @@ public static class AuthRoutes
 
         group.MapGet("/google-callback", async (IMediator mediator) =>
         {
-            var response = await mediator.Send(new GoogleAuthCommand());
-            return Results.Ok(response);
+            var response = await mediator.Send(new ThirdPartyAuthCommand(GoogleDefaults.AuthenticationScheme));
+            return response;
         }).WithName("GoogleCallback");
+
+        group.MapGet("/login/github", async (HttpContext context) =>
+        {
+            var authProperties = new AuthenticationProperties { RedirectUri = "api/auth/github-callback" };
+            return Results.Challenge(authProperties, new[] { "GitHub" });
+        }).WithName("GithubLogin");
+
+        group.MapGet("/github-callback", async (IMediator mediator) =>
+        {
+                var response = await mediator.Send(new ThirdPartyAuthCommand("GitHub"));
+            return response;
+        }).WithName("GitHubCallback");
     }
 }

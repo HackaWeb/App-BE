@@ -2,10 +2,15 @@
 using App.Domain;
 using App.Domain.Models;
 using App.Domain.Settings;
+using App.Infrastructure.Settings;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace App.Api.Extensions;
 
@@ -17,8 +22,12 @@ public static class ServiceExtensions
         var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable(AppConstants.JWT_SECRET) ?? jwtSettings[nameof(JwtSettings.Secret)]!);
 
         var googleSettings = configuration.GetSection(nameof(GoogleAuthenticationSettings));
-        var clientId = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_ID) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientId)]!;
-        var clientSecret = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_SECRET) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientSecret)]!;
+        var googleClientId = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_ID) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientId)]!;
+        var googleClientSecret = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_SECRET) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientSecret)]!;
+
+        var githubSettings = configuration.GetSection(nameof(GithubAuthenticationSettings));
+        var githubClientId = Environment.GetEnvironmentVariable(AppConstants.GITHUB_CLIENT_ID) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientId)]!;
+        var githubClientSecret = Environment.GetEnvironmentVariable(AppConstants.GITHUB_CLIENT_SECRET) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientSecret)]!;
 
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
@@ -44,9 +53,50 @@ public static class ServiceExtensions
         })
         .AddGoogle(googleOptions =>
         {
-            googleOptions.ClientId = clientId;
-            googleOptions.ClientSecret = clientSecret;
+            googleOptions.ClientId = googleClientId;
+            googleOptions.ClientSecret = googleClientSecret;
             googleOptions.CallbackPath = "/signin-google";
+        })
+        .AddOAuth("GitHub", githubOptions =>
+        {
+            githubOptions.ClientId = githubClientId;
+            githubOptions.ClientSecret = githubClientSecret;
+            githubOptions.CallbackPath = "/signin-github";
+            githubOptions.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+            githubOptions.TokenEndpoint = "https://github.com/login/oauth/access_token";
+            githubOptions.UserInformationEndpoint = "https://api.github.com/user";
+
+            githubOptions.Scope.Add("user:email");
+            githubOptions.Scope.Add("read:user");
+
+            githubOptions.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "login");
+            githubOptions.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+
+            githubOptions.SaveTokens = true;
+
+            githubOptions.Events = new OAuthEvents
+            {
+                OnCreatingTicket = async context =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user/emails");
+                    request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+                    request.Headers.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("MyApp", "1.0"));
+
+                    var response = await context.Backchannel.SendAsync(request);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        using var jsonDoc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                        var emailElement = jsonDoc.RootElement.EnumerateArray()
+                            .FirstOrDefault(e => e.TryGetProperty("primary", out var primary) && primary.GetBoolean());
+
+                        if (emailElement.TryGetProperty("email", out var email))
+                        {
+                            context.Identity?.AddClaim(new Claim(ClaimTypes.Email, email.GetString() ?? ""));
+                        }
+                    }
+                }
+            };
         });
 
         services.AddAuthorization();

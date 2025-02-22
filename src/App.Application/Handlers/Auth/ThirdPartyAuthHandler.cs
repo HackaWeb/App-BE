@@ -13,21 +13,21 @@ using System.Text;
 
 namespace App.Application.Handlers.Auth;
 
-public record GoogleAuthCommand : IRequest<TokenResponse>;
+public record ThirdPartyAuthCommand(string scheme) : IRequest<TokenResponse>;
 
-public class GoogleAuthHandler(
+public class ThirdPartyAuthHandler(
     UserManager<User> userManager,
     IHttpContextAccessor httpContextAccessor,
-    IJwtTokenService jwtTokenService) : IRequestHandler<GoogleAuthCommand, TokenResponse>
+    IJwtTokenService jwtTokenService) : IRequestHandler<ThirdPartyAuthCommand, TokenResponse>
 {
-    public async Task<TokenResponse> Handle(GoogleAuthCommand request, CancellationToken cancellationToken)
+    public async Task<TokenResponse> Handle(ThirdPartyAuthCommand request, CancellationToken cancellationToken)
     {
         var context = httpContextAccessor.HttpContext;
-        var authenticateResult = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+        var authenticateResult = await context.AuthenticateAsync(request.scheme);
 
         if (!authenticateResult.Succeeded)
         {
-            throw new DomainException("Google authentication error", (int)HttpStatusCode.Unauthorized);
+            throw new DomainException("Authentication error", (int)HttpStatusCode.Unauthorized);
         }
 
         var email = authenticateResult.Principal?.FindFirst(ClaimTypes.Email)?.Value;
@@ -36,7 +36,7 @@ public class GoogleAuthHandler(
 
         if (string.IsNullOrEmpty(email))
         {
-            throw new DomainException("Failed to retrieve Email from Google", (int)HttpStatusCode.BadRequest);
+            throw new DomainException($"Failed to retrieve Email from {request.scheme}", (int)HttpStatusCode.BadRequest);
         }
 
         var user = await userManager.FindByEmailAsync(email);

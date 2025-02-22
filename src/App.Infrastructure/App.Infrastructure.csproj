@@ -17,4 +17,8 @@
 	  <ProjectReference Include="..\App.Application\App.Application.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Settings\Github\" />
+	</ItemGroup>
+
 </Project>

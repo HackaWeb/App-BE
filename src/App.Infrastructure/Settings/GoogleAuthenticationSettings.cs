@@ -1,4 +1,4 @@
-﻿namespace App.Domain.Settings;
+﻿namespace App.Infrastructure.Settings;
 
 public class GoogleAuthenticationSettings
 {
