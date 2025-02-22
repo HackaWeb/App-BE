@@ -26,8 +26,8 @@ public static class ServiceExtensions
         var googleClientSecret = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_SECRET) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientSecret)]!;
 
         var githubSettings = configuration.GetSection(nameof(GithubAuthenticationSettings));
-        var githubClientId = Environment.GetEnvironmentVariable(AppConstants.GITHUB_CLIENT_ID) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientId)]!;
-        var githubClientSecret = Environment.GetEnvironmentVariable(AppConstants.GITHUB_CLIENT_SECRET) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientSecret)]!;
+        var githubClientId = Environment.GetEnvironmentVariable(AppConstants.GH_CLIENT_ID) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientId)]!;
+        var githubClientSecret = Environment.GetEnvironmentVariable(AppConstants.GH_CLIENT_SECRET) ?? githubSettings[nameof(GithubAuthenticationSettings.ClientSecret)]!;
 
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
