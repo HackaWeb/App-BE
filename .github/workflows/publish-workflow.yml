@@ -62,5 +62,5 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
-            GH_CLIENT_SECRET=${{ secrets.GGH_CLIENT_SECRET }}
+            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}

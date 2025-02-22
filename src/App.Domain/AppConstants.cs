@@ -7,6 +7,6 @@ public static class AppConstants
     public static readonly string JWT_SECRET = nameof(JWT_SECRET);
     public static readonly string GOOGLE_CLIENT_ID = nameof(GOOGLE_CLIENT_ID);
     public static readonly string GOOGLE_CLIENT_SECRET = nameof(GOOGLE_CLIENT_SECRET);
-    public static readonly string GH_CLIENT_ID = nameof(GH_CLIENT_ID);
-    public static readonly string GH_CLIENT_SECRET = nameof(GH_CLIENT_SECRET);
+    public static readonly string GITHUB_CLIENT_ID = nameof(GITHUB_CLIENT_ID);
+    public static readonly string GITHUB_CLIENT_SECRET = nameof(GITHUB_CLIENT_SECRET);
 }
