@@ -16,6 +16,10 @@ public static class ServiceExtensions
         var jwtSettings = configuration.GetSection(nameof(JwtSettings));
         var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable(AppConstants.JWT_SECRET) ?? jwtSettings[nameof(JwtSettings.Secret)]!);
 
+        var googleSettings = configuration.GetSection(nameof(GoogleAuthenticationSettings));
+        var clientId = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_ID) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientId)]!;
+        var clientSecret = Environment.GetEnvironmentVariable(AppConstants.GOOGLE_CLIENT_SECRET) ?? googleSettings[nameof(GoogleAuthenticationSettings.ClientSecret)]!;
+
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
         services.AddAuthentication(options =>
@@ -37,6 +41,12 @@ public static class ServiceExtensions
                 ValidAudience = jwtSettings[nameof(JwtSettings.Audience)],
                 IssuerSigningKey = new SymmetricSecurityKey(key)
             };
+        })
+        .AddGoogle(googleOptions =>
+        {
+            googleOptions.ClientId = clientId;
+            googleOptions.ClientSecret = clientSecret;
+            googleOptions.CallbackPath = "/signin-google";
         });
 
         services.AddAuthorization();
@@ -60,6 +70,9 @@ public static class ServiceExtensions
         services.AddLogging();
 
         services.Configure<JwtSettings>(configuration.GetSection(nameof(JwtSettings)));
+        services.Configure<GoogleAuthenticationSettings>(configuration.GetSection(nameof(GoogleAuthenticationSettings)));
+
+        services.AddHttpContextAccessor();
 
         return services;
     }

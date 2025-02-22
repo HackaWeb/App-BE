@@ -2,6 +2,8 @@
 using App.Domain.Exceptions;
 using App.RestContracts.Auth.Requests;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using System.Net;
 
 namespace App.Api.Routes;
@@ -34,5 +36,21 @@ public static class AuthRoutes
             var command = new RefreshTokenCommand(request.RefreshToken);
             return await mediator.Send(command);
         }).WithName("RefreshToken");
+
+        group.MapGet("/login/google", async (HttpContext httpContext) =>
+        {
+            var authProperties = new AuthenticationProperties
+            {
+                RedirectUri = "api/auth/google-callback"
+            };
+
+            return Results.Challenge(authProperties, new[] { GoogleDefaults.AuthenticationScheme });
+        }).WithName("GoogleLogin");
+
+        group.MapGet("/google-callback", async (IMediator mediator) =>
+        {
+            var response = await mediator.Send(new GoogleAuthCommand());
+            return Results.Ok(response);
+        }).WithName("GoogleCallback");
     }
 }
