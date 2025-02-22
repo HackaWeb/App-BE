@@ -8,13 +8,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["src/App.sln", .]
-COPY ["src/App.Api/App.Api.csproj", "App.Api/"]
-COPY ["src/App.Application/App.Application.csproj", "App.Application/"]
-COPY ["src/App.DataContext/App.DataContext.csproj", "App.DataContext/"]
-COPY ["src/App.Domain/App.Domain.csproj", "App.Domain/"]
-COPY ["src/App.Infrastructure/App.Infrastructure.csproj", "App.Infrastructure/"]
-COPY ["src/contracts/App.RestContracts/App.RestContracts.csproj", "App.RestContracts/"]
+COPY src/App.sln .
+COPY src/App.Api/App.Api.csproj App.Api/
+COPY src/App.Application/App.Application.csproj App.Application/
+COPY src/App.DataContext/App.DataContext.csproj App.DataContext/
+COPY src/App.Domain/App.Domain.csproj App.Domain/
+COPY src/App.Infrastructure/App.Infrastructure.csproj App.Infrastructure/
+COPY src/contracts/App.RestContracts/App.RestContracts.csproj contracts/App.RestContracts/
 
 RUN dotnet restore "App.sln"
 
