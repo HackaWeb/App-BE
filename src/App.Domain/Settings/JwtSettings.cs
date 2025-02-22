@@ -6,4 +6,5 @@ public record JwtSettings
     public string Audience { get; init; }
     public string Secret { get; init; }
     public ushort ExpiryMinutes { get; init; }
+    public ushort RefreshTokenExpiryInDays { get; set; }
 }

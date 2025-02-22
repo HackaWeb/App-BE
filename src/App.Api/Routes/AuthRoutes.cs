@@ -10,29 +10,29 @@ public static class AuthRoutes
 {
     public static void MapAuthRoutes(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/auth");
+        var group = app.MapGroup("api/auth").WithName("Auth");
 
         group.MapPost("/register", async (IMediator mediator, RegisterUserRequest request) =>
         {
-            var command = new RegisterUserCommand();
-            await mediator.Send(command);
+            var command = new RegisterUserCommand(request.Email, request.UserName, request.Password);
+            return await mediator.Send(command);
         }).WithName("RegisterUser");
 
         group.MapPost("/login", async (IMediator mediator, LoginUserRequest request) =>
         {
-            var command = new LoginUserCommand();
-            await mediator.Send(command);
-        }).WithName("RegisterUser");
+            var command = new LoginUserCommand(request.Username, request.Password);
+            return await mediator.Send(command);
+        }).WithName("LoginUser");
 
-        group.MapPost("/refresh/{refreshToken}", async (IMediator mediator, string refreshToken) =>
+        group.MapPost("/refresh", async (IMediator mediator, RefreshTokenRequest request) =>
         {
-            if (string.IsNullOrEmpty(refreshToken))
+            if (string.IsNullOrEmpty(request.RefreshToken))
             {
                 throw new DomainException("refresh token can't be empty!", (int)HttpStatusCode.BadRequest);
             }
 
-            var command = new RefreshTokenCommand();
-            await mediator.Send(command);
+            var command = new RefreshTokenCommand(request.RefreshToken);
+            return await mediator.Send(command);
         }).WithName("RefreshToken");
     }
 }

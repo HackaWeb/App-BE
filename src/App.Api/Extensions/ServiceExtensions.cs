@@ -54,7 +54,7 @@ public static class ServiceExtensions
         return services;
     }
 
-    public static IServiceCollection ConfigureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions();
         services.AddLogging();
@@ -64,7 +64,7 @@ public static class ServiceExtensions
         return services;
     }
 
-    public static IServiceCollection AddCors(this IServiceCollection services)
+    public static IServiceCollection AddCorsPolicies(this IServiceCollection services)
     {
         services.AddCors(options =>
         {

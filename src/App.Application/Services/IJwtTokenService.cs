@@ -5,7 +5,7 @@ namespace App.Application.Services;
 
 public interface IJwtTokenService
 {
-    string GenerateToken(User user, IList<UserRoles> roles);
+    string GenerateToken(User user, IList<string> roles);
 
     string GenerateRefreshToken();
 

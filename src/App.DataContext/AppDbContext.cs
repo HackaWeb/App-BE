@@ -23,6 +23,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             .WithOne(c => c.Sample)
             .HasForeignKey(c => c.SampleId);
 
+        builder.Entity<User>()
+            .HasMany(s => s.Samples)
+            .WithOne(s => s.User)
+            .HasForeignKey(s => s.UserId);
+
         base.OnModelCreating(builder);
     }
 }

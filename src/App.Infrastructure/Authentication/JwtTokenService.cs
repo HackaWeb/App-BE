@@ -13,7 +13,7 @@ namespace App.Application.Services;
 
 public class JwtTokenService(IOptions<JwtSettings> jwtSettings) : IJwtTokenService
 {
-    public string GenerateToken(User user, IList<UserRoles> roles)
+    public string GenerateToken(User user, IList<string> roles)
     {
         var secret = Environment.GetEnvironmentVariable(AppConstants.JWT_SECRET)
             ?? jwtSettings.Value.Secret;
@@ -31,7 +31,7 @@ public class JwtTokenService(IOptions<JwtSettings> jwtSettings) : IJwtTokenServi
 
         foreach (var role in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+            claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
         var token = new JwtSecurityToken(
