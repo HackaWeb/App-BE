@@ -33,6 +33,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthRoutes();
+app.MapUserRoutes();
 app.MapControllers();
 
 app.Run();
