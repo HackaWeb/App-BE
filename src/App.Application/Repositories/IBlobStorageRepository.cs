@@ -1,4 +1,4 @@
-﻿namespace App.Infrastructure.Repositories;
+﻿namespace App.Application.Repositories;
 
 public interface IBlobStorageRepository
 {

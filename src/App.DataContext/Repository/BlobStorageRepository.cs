@@ -1,5 +1,5 @@
-﻿using App.Domain;
-using App.Infrastructure.Repositories;
+﻿using App.Application.Repositories;
+using App.Domain;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;

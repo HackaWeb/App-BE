@@ -1,7 +1,6 @@
 ﻿using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Exceptions;
-using App.Domain.Models;
 using App.Domain.Settings;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -13,8 +12,8 @@ namespace App.Application.Handlers.Auth;
 public record LoginUserCommand(string username, string password) : IRequest<TokenResponse>;
 
 public class LoginUserHandler(
-    UserManager<User> userManager,
-    SignInManager<User> signInManager,
+    UserManager<Domain.Models.User> userManager,
+    SignInManager<Domain.Models.User> signInManager,
     IJwtTokenService jwtTokenService,
     IOptions<JwtSettings> jwtTokenSettings) : IRequestHandler<LoginUserCommand, TokenResponse>
 {

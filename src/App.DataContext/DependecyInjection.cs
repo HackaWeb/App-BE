@@ -1,8 +1,8 @@
-﻿using App.DataContext.Repository;
+﻿using App.Application.Repositories;
+using App.DataContext.Repository;
 using App.Domain;
 using App.Domain.Enums;
 using App.Domain.Models;
-using App.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
