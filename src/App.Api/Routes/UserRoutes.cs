@@ -1,7 +1,8 @@
 using App.Application.Handlers.Users;
-using App.RestContracts.User;
+using App.RestContracts.Users;
 using App.RestContracts.Users.Requests;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using System.Security.Claims;
 
 namespace App.Api.Routes;
@@ -31,30 +32,38 @@ public static class UserRoutes
         group.MapDelete("/me", async (HttpContext httpContext, IMediator mediator) =>
         {
             var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return await mediator.Send(new DeleteUserCommand(userId));
+            await mediator.Send(new DeleteUserCommand(userId));
+
+            return Results.Ok();
         }).WithName("DeleteCurrentUser").RequireAuthorization();
 
 
         group.MapPost("/me/image", async (HttpContext httpContext, IMediator mediator) =>
         {
             var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return await mediator.Send();
 
+            if (!httpContext.Request.HasFormContentType || httpContext.Request.Form.Files.Count == 0)
+            {
+                return Results.BadRequest("No file uploaded");
+            }
+
+            var file = httpContext.Request.Form.Files[0];
+
+            return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
         }).WithName("UploadUserImage").RequireAuthorization();
 
 
         group.MapDelete("/me/image", async (HttpContext httpContext, IMediator mediator) =>
         {
             var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return await mediator.Send();
+            await mediator.Send(new DeleteUserImageCommand(userId));
 
+            return Results.Ok();
         }).WithName("DeleteUserImage").RequireAuthorization();
-
-
+        
         group.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
         {
             return await mediator.Send(new GetUserByIdCommand(id.ToString()));
         }).WithName("GetUserById");
-
     }
 }

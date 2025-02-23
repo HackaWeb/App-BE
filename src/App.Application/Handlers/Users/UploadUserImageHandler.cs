@@ -1,12 +1,45 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using App.Application.Repositories;
+using App.Domain.Exceptions;
+using App.Domain.Models;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using System.Net;
 
-namespace App.Application.Handlers.Users
+namespace App.Application.Handlers.Users;
+
+public record UploadUserImageCommand(string userId, IFormFile file) : IRequest<string>;
+
+public class UploadUserImageHandler(
+    UserManager<User> userManager,
+    IBlobStorageRepository repository) : IRequestHandler<UploadUserImageCommand, string>
 {
-    public class UploadUserImageHandler
+    public async Task<string> Handle(UploadUserImageCommand request, CancellationToken cancellationToken)
     {
-        
+        var user = await userManager.FindByIdAsync(request.userId);
+        if (user is null)
+        {
+            throw new DomainException("User was not found", (int)HttpStatusCode.Unauthorized);
+        }
+
+        var allowedFormats = new HashSet<string> { "image/png", "image/jpeg" };
+        if (!allowedFormats.Contains(request.file.ContentType))
+        {
+            throw new DomainException("Only PNG and JPG images are allowed.", (int)HttpStatusCode.BadRequest);
+        }
+
+        var extension = request.file.ContentType == "image/png" ? "png" : "jpg";
+        var fileName = $"{user.Id}.{extension}";
+
+        using var stream = request.file.OpenReadStream();
+        user.AvatarUrl = await repository.UploadAsync(stream, fileName, request.file.ContentType, "media");
+
+        var updateResult = await userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            throw new DomainException("User info update ended with an error", (int)HttpStatusCode.InternalServerError);
+        }
+
+        return user.AvatarUrl;
     }
 }
