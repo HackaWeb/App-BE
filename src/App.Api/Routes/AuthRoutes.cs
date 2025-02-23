@@ -1,6 +1,8 @@
 ﻿using App.Application.Handlers.Auth;
 using App.Domain.Exceptions;
 using App.RestContracts.Auth.Requests;
+using Azure.Core;
+using Google.Apis.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -12,7 +14,10 @@ public static class AuthRoutes
 {
     public static void MapAuthRoutes(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/auth").WithName("Auth");
+        var group = app
+            .MapGroup("api/auth")
+            .WithName("Auth")
+            .WithTags("Authentication");
 
         group.MapPost("/register", async (IMediator mediator, RegisterUserRequest request) =>
         {
@@ -37,32 +42,26 @@ public static class AuthRoutes
             return await mediator.Send(command);
         }).WithName("RefreshToken");
 
-        group.MapGet("/login/google", async (HttpContext httpContext) =>
+        group.MapGet("/google", async (IMediator mediator, string token) =>
         {
-            var authProperties = new AuthenticationProperties
-            {
-                RedirectUri = "api/auth/google-callback"
-            };
+            var payload = await GoogleJsonWebSignature.ValidateAsync(token);
+            var email = payload.Email;
+            var firstName = payload.GivenName;
+            var lastName = payload.FamilyName;
 
-            return Results.Challenge(authProperties, new[] { GoogleDefaults.AuthenticationScheme });
+            return await mediator.Send(new ThirdPartyAuthCommand(email, firstName, lastName));
         }).WithName("GoogleLogin");
 
-        group.MapGet("/google-callback", async (IMediator mediator) =>
-        {
-            var response = await mediator.Send(new ThirdPartyAuthCommand(GoogleDefaults.AuthenticationScheme));
-            return response;
-        }).WithName("GoogleCallback");
+        //group.MapGet("/login/github", async (HttpContext context) =>
+        //{
+        //    var authProperties = new AuthenticationProperties { RedirectUri = "api/auth/github-callback" };
+        //    return Results.Challenge(authProperties, new[] { "GitHub" });
+        //}).WithName("GithubLogin");
 
-        group.MapGet("/login/github", async (HttpContext context) =>
-        {
-            var authProperties = new AuthenticationProperties { RedirectUri = "api/auth/github-callback" };
-            return Results.Challenge(authProperties, new[] { "GitHub" });
-        }).WithName("GithubLogin");
-
-        group.MapGet("/github-callback", async (IMediator mediator) =>
-        {
-                var response = await mediator.Send(new ThirdPartyAuthCommand("GitHub"));
-            return response;
-        }).WithName("GitHubCallback");
+        //group.MapGet("/github-callback", async (IMediator mediator) =>
+        //{
+        //        var response = await mediator.Send(new ThirdPartyAuthCommand("GitHub"));
+        //    return response;
+        //}).WithName("GitHubCallback");
     }
 }

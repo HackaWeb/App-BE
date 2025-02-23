@@ -51,12 +51,6 @@ public static class ServiceExtensions
                 IssuerSigningKey = new SymmetricSecurityKey(key)
             };
         })
-        .AddGoogle(googleOptions =>
-        {
-            googleOptions.ClientId = googleClientId;
-            googleOptions.ClientSecret = googleClientSecret;
-            googleOptions.CallbackPath = "/signin-google";
-        })
         .AddOAuth("GitHub", githubOptions =>
         {
             githubOptions.ClientId = githubClientId;

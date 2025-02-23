@@ -11,7 +11,7 @@ public static class UserRoutes
 {
     public static void MapUserRoutes(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/users").WithName("Users");
+        var group = app.MapGroup("api/users").WithName("Users").WithTags("Users");
 
         group.MapGet("/me", async (HttpContext httpContext, IMediator mediator) =>
         {

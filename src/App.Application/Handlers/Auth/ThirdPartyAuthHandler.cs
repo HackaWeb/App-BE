@@ -3,43 +3,27 @@ using App.Application.Services;
 using App.Domain.Exceptions;
 using App.Domain.Models;
 using MediatR;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System.Net;
-using System.Security.Claims;
 using System.Text;
 
 namespace App.Application.Handlers.Auth;
 
-public record ThirdPartyAuthCommand(string scheme) : IRequest<TokenResponse>;
+public record ThirdPartyAuthCommand(string email, string? firstName, string? lastName) : IRequest<TokenResponse>;
 
 public class ThirdPartyAuthHandler(
     UserManager<User> userManager,
-    IHttpContextAccessor httpContextAccessor,
     IJwtTokenService jwtTokenService) : IRequestHandler<ThirdPartyAuthCommand, TokenResponse>
 {
     public async Task<TokenResponse> Handle(ThirdPartyAuthCommand request, CancellationToken cancellationToken)
     {
-        var context = httpContextAccessor.HttpContext;
-        var authenticateResult = await context.AuthenticateAsync(request.scheme);
-
-        if (!authenticateResult.Succeeded)
+        if (string.IsNullOrEmpty(request.email))
         {
-            throw new DomainException("Authentication error", (int)HttpStatusCode.Unauthorized);
+            throw new DomainException($"Failed to retrieve Email.", (int)HttpStatusCode.BadRequest);
         }
 
-        var email = authenticateResult.Principal?.FindFirst(ClaimTypes.Email)?.Value;
-        var firstName = authenticateResult.Principal?.FindFirst(ClaimTypes.GivenName)?.Value;
-        var surname = authenticateResult.Principal?.FindFirst(ClaimTypes.Surname)?.Value;
-
-        if (string.IsNullOrEmpty(email))
-        {
-            throw new DomainException($"Failed to retrieve Email from {request.scheme}", (int)HttpStatusCode.BadRequest);
-        }
-
-        var user = await userManager.FindByEmailAsync(email);
+        var user = await userManager.FindByEmailAsync(request.email);
         if (user == null)
         {
             string uniqueUsername;
@@ -52,9 +36,9 @@ public class ThirdPartyAuthHandler(
 
             user = new User
             {
-                Email = email,
-                FirstName = firstName,
-                LastName = surname,
+                Email = request.email,
+                FirstName = request.firstName,
+                LastName = request.lastName,
                 UserName = uniqueUsername,
             };
 
