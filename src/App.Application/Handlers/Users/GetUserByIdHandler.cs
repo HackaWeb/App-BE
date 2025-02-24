@@ -24,10 +24,10 @@ public class GetUserByIdHandler(
 
         var userRest = new UserModel
         {
+            Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,
-            UserName = user.UserName,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
         };

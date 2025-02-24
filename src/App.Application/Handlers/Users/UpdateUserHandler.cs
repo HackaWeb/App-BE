@@ -40,9 +40,9 @@ public class UpdateUserHandler(UserManager<User> userManager) : IRequestHandler<
         }
 
         return new UserModel{
+            Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            UserName = user.UserName,
             AvatarUrl = user.AvatarUrl,
             Email = user.Email,
             CreatedAt = user.CreatedAt,

@@ -45,7 +45,7 @@ public static class AuthRoutes
         group.MapPost("/google", async (IMediator mediator, ThirdPartyTokenRequest request) =>
         {
             var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-            return await mediator.Send(new ThirdPartyAuthCommand(payload.Email, payload.GivenName, payload.FamilyName));
+            return await mediator.Send(new ThirdPartyAuthCommand(payload.Email, payload.GivenName, payload.FamilyName, payload.Picture));
         }).WithName("GoogleLogin");
     }
 }

@@ -36,6 +36,7 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 app.MapAuthRoutes(); 
-app.MapUserRoutes(); 
+app.MapProfileRoutes();
+app.MapUserRoutes();
 
 app.Run();

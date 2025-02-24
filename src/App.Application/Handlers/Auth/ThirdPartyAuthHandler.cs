@@ -11,7 +11,7 @@ using System.Text;
 
 namespace App.Application.Handlers.Auth;
 
-public record ThirdPartyAuthCommand(string email, string? firstName, string? lastName) : IRequest<TokenResponse>;
+public record ThirdPartyAuthCommand(string email, string? firstName, string? lastName, string? imgUrl) : IRequest<TokenResponse>;
 
 public class ThirdPartyAuthHandler(
     UserManager<User> userManager,
@@ -41,6 +41,7 @@ public class ThirdPartyAuthHandler(
                 FirstName = request.firstName,
                 LastName = request.lastName,
                 UserName = uniqueUsername,
+                AvatarUrl = request.imgUrl,
             };
 
             var result = await userManager.CreateAsync(user);
