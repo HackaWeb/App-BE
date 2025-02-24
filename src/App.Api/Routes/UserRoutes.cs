@@ -15,7 +15,9 @@ public static class UserRoutes
         {
             var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return await mediator.Send(new GetUserByIdCommand(userId));
-        }).WithName("GetCurrentUser").RequireAuthorization();
+        })
+            .WithName("GetCurrentUser")
+            .RequireAuthorization();
 
 
         group.MapPut("/me", async (HttpContext httpContext, IMediator mediator, UpdateUserRequest request) =>
@@ -24,7 +26,9 @@ public static class UserRoutes
             var command = new UpdateUserCommand(userId, request.FirstName, request.LastName, request.Email, request.Username);
             
             return await mediator.Send(command);
-        }).WithName("UpdateCurrentUser").RequireAuthorization();
+        })
+            .WithName("UpdateCurrentUser")
+            .RequireAuthorization();
 
 
         group.MapDelete("/me", async (HttpContext httpContext, IMediator mediator) =>
@@ -33,7 +37,9 @@ public static class UserRoutes
             await mediator.Send(new DeleteUserCommand(userId));
 
             return Results.Ok();
-        }).WithName("DeleteCurrentUser").RequireAuthorization();
+        })
+            .WithName("DeleteCurrentUser")
+            .RequireAuthorization();
 
 
         group.MapPost("/me/image", async (HttpContext httpContext, IMediator mediator) =>
@@ -48,7 +54,10 @@ public static class UserRoutes
             var file = httpContext.Request.Form.Files[0];
 
             return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
-        }).WithName("UploadUserImage").RequireAuthorization();
+        })
+            .WithName("UploadUserImage")
+            .Accepts<IFormFile>("multipart/form-data")
+            .RequireAuthorization();
 
 
         group.MapDelete("/me/image", async (HttpContext httpContext, IMediator mediator) =>
@@ -57,6 +66,8 @@ public static class UserRoutes
             await mediator.Send(new DeleteUserImageCommand(userId));
 
             return Results.Ok();
-        }).WithName("DeleteUserImage").RequireAuthorization();
+        })
+            .WithName("DeleteUserImage")
+            .RequireAuthorization();
     }
 }
