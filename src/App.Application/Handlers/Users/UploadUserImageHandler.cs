@@ -1,6 +1,7 @@
 using App.Application.Repositories;
 using App.Domain.Exceptions;
 using App.Domain.Models;
+using App.RestContracts.Users.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -8,13 +9,13 @@ using System.Net;
 
 namespace App.Application.Handlers.Users;
 
-public record UploadUserImageCommand(string userId, IFormFile file) : IRequest<string>;
+public record UploadUserImageCommand(string userId, IFormFile file) : IRequest<UserImageResponse>;
 
 public class UploadUserImageHandler(
     UserManager<User> userManager,
-    IBlobStorageRepository repository) : IRequestHandler<UploadUserImageCommand, string>
+    IBlobStorageRepository repository) : IRequestHandler<UploadUserImageCommand, UserImageResponse>
 {
-    public async Task<string> Handle(UploadUserImageCommand request, CancellationToken cancellationToken)
+    public async Task<UserImageResponse> Handle(UploadUserImageCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.userId);
         if (user is null)
@@ -40,6 +41,9 @@ public class UploadUserImageHandler(
             throw new DomainException("User info update ended with an error", (int)HttpStatusCode.InternalServerError);
         }
 
-        return user.AvatarUrl;
+        return new UserImageResponse
+        {
+            AvatarUrl = user.AvatarUrl,
+        };
     }
 }
