@@ -20,6 +20,7 @@ builder.Services.AddIdentity();
 
 var app = builder.Build();
 
+app.UseCors("AllowAll");
 app.ConfigureIdentityRoles();
 
 app.UseMiddleware<ExceptionMiddleware>();
