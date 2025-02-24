@@ -12,29 +12,30 @@ builder.Services.AddSwagger();
 builder.Services.AddCorsPolicies();
 builder.Services.ConfigureMediatR();
 
+builder.Services.AddIdentity();
 builder.Services.AddJwt(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddDbContext(builder.Configuration);
-builder.Services.AddIdentity();
 
 var app = builder.Build();
 
 app.ConfigureIdentityRoles();
 
-app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>(); 
+
+app.UseCors("AllowAll");
+
+app.UseAuthentication(); 
+app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapAuthRoutes();
-app.MapUserRoutes();
 app.MapControllers();
+app.MapAuthRoutes(); 
+app.MapUserRoutes(); 
 
 app.Run();

@@ -1,6 +1,7 @@
 ﻿using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Exceptions;
+using App.Domain.Models;
 using App.Domain.Settings;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -12,21 +13,14 @@ namespace App.Application.Handlers.Auth;
 public record LoginUserCommand(string email, string password) : IRequest<TokenResponse>;
 
 public class LoginUserHandler(
-    UserManager<Domain.Models.User> userManager,
-    SignInManager<Domain.Models.User> signInManager,
+    UserManager<User> userManager,
     IJwtTokenService jwtTokenService,
     IOptions<JwtSettings> jwtTokenSettings) : IRequestHandler<LoginUserCommand, TokenResponse>
 {
     public async Task<TokenResponse> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(request.email);
-        if (user is null)
-        {
-            throw new DomainException("Invalid email or password.", (int)HttpStatusCode.Unauthorized);
-        }
-
-        var authResult = await signInManager.PasswordSignInAsync(user, request.password, false, false);
-        if (!authResult.Succeeded)
+        if (user is null || !await userManager.CheckPasswordAsync(user, request.password))
         {
             throw new DomainException("Invalid email or password.", (int)HttpStatusCode.Unauthorized);
         }

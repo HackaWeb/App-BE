@@ -39,7 +39,7 @@ namespace App.DataContext.Migrations
 
                     b.HasIndex("SampleId");
 
-                    b.ToTable("ChildSamples");
+                    b.ToTable("ChildSamples", (string)null);
                 });
 
             modelBuilder.Entity("App.Domain.Models.Sample", b =>
@@ -59,7 +59,7 @@ namespace App.DataContext.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Samples");
+                    b.ToTable("Samples", (string)null);
                 });
 
             modelBuilder.Entity("App.Domain.Models.User", b =>

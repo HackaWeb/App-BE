@@ -45,22 +45,23 @@ public static class UserRoutes
             .RequireAuthorization();
 
 
-        group.MapPost("/me/image", async (HttpContext httpContext, IMediator mediator) =>
-        {
-            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!httpContext.Request.HasFormContentType || httpContext.Request.Form.Files.Count == 0)
+        group.MapPost("/me/image", async (HttpContext httpContext, IFormFile file, IMediator mediator) =>
             {
-                return Results.BadRequest("No file uploaded");
-            }
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var file = httpContext.Request.Form.Files[0];
+                if (file == null || file.Length == 0)
+                {
+                    return Results.BadRequest("No file uploaded");
+                }
 
-            return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
-        })
+                return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
+            })
             .WithName("UploadUserImage")
             .Accepts<IFormFile>("multipart/form-data")
-            .RequireAuthorization();
+            .Produces<string>(StatusCodes.Status200OK)
+            .Produces<string>(StatusCodes.Status400BadRequest)
+            .RequireAuthorization()
+            .DisableAntiforgery();
 
 
         group.MapDelete("/me/image", async (HttpContext httpContext, IMediator mediator) =>

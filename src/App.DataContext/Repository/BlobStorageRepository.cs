@@ -13,7 +13,8 @@ public class BlobStorageRepository : IBlobStorageRepository
 
     public BlobStorageRepository(IConfiguration configuration)
     {
-        var connectionString = Environment.GetEnvironmentVariable(AppConstants.AZURE_STORAGE_CONNECTION_STRING);
+        var connectionString = Environment.GetEnvironmentVariable(AppConstants.AZURE_STORAGE_CONNECTION_STRING)
+            ?? configuration.GetConnectionString("BlobConnectionString");
         _blobServiceClient = new BlobServiceClient(connectionString);
     }
 
