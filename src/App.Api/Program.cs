@@ -20,7 +20,6 @@ builder.Services.AddIdentity();
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
 app.ConfigureIdentityRoles();
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -30,6 +29,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
