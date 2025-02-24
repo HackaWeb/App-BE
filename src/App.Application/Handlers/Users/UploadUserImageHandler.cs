@@ -30,7 +30,7 @@ public class UploadUserImageHandler(
         }
 
         var extension = request.file.ContentType == "image/png" ? "png" : "jpg";
-        var fileName = $"{user.Id}.{extension}";
+        var fileName = $"{Guid.NewGuid()}.{extension}";
 
         using var stream = request.file.OpenReadStream();
         user.AvatarUrl = await repository.UploadAsync(stream, fileName, request.file.ContentType, "media");
