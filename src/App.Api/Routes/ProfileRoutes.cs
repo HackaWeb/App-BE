@@ -1,6 +1,7 @@
 using App.Application.Handlers.Users;
 using App.RestContracts.Shared;
 using App.RestContracts.Users.Requests;
+using App.RestContracts.Users.Responses;
 using MediatR;
 using System.Security.Claims;
 
@@ -62,8 +63,8 @@ public static class ProfileRoutes
             })
             .WithName("UploadUserImage")
             .Accepts<IFormFile>("multipart/form-data")
-            .Produces<string>(StatusCodes.Status200OK)
-            .Produces<string>(StatusCodes.Status400BadRequest)
+            .Produces<UserImageResponse>(StatusCodes.Status200OK)
+            .Produces<ResultResponse>(StatusCodes.Status400BadRequest)
             .RequireAuthorization()
             .DisableAntiforgery();
 
