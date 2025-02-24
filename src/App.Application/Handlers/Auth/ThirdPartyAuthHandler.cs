@@ -1,4 +1,5 @@
-﻿using App.Application.Responses;
+﻿using App.Application.Extensions;
+using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Exceptions;
 using App.Domain.Models;
@@ -30,7 +31,7 @@ public class ThirdPartyAuthHandler(
 
             do
             {
-                uniqueUsername = GenerateRandomUsername();
+                uniqueUsername = ApplicationExtensions.GenerateRandomUsername();
             }
             while (await userManager.FindByNameAsync(uniqueUsername) != null);
 
@@ -58,17 +59,5 @@ public class ThirdPartyAuthHandler(
         await userManager.UpdateAsync(user);
 
         return new TokenResponse(token, refreshToken);
-    }
-
-    private string GenerateRandomUsername()
-    {
-        var random = new Random();
-        var sb = new StringBuilder();
-        sb.Append("koala_");
-        for (int i = 0; i < 8; i++)
-        {
-            sb.Append(random.Next(0, 10));
-        }
-        return sb.ToString();
     }
 }

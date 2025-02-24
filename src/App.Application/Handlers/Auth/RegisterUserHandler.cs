@@ -1,4 +1,5 @@
-﻿using App.Application.Responses;
+﻿using App.Application.Extensions;
+using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Enums;
 using App.Domain.Exceptions;
@@ -11,7 +12,7 @@ using System.Net;
 
 namespace App.Application.Handlers.Auth;
 
-public record RegisterUserCommand(string email, string username, string password) : IRequest<TokenResponse>;
+public record RegisterUserCommand(string email, string password) : IRequest<TokenResponse>;
 
 public class RegisterUserHandler(
     UserManager<User> userManager,
@@ -22,7 +23,7 @@ public class RegisterUserHandler(
     {
         var user = new User
         {
-            UserName = request.username,
+            UserName = ApplicationExtensions.GenerateRandomUsername(),
             Email = request.email,
             CreatedAt = DateTime.Now,
         };

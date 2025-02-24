@@ -22,16 +22,13 @@ public class GetUserByIdHandler(
             throw new DomainException("User was not found", (int)HttpStatusCode.Unauthorized);
         }
 
-        var isAdmin = await userManager.IsInRoleAsync(user, nameof(UserRoles.ADMIN));
         var userRest = new UserModel
         {
-            Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,
             UserName = user.UserName,
             Email = user.Email,
-            IsAdmin = isAdmin,
             CreatedAt = user.CreatedAt,
         };
 

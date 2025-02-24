@@ -21,13 +21,13 @@ public static class AuthRoutes
 
         group.MapPost("/register", async (IMediator mediator, RegisterUserRequest request) =>
         {
-            var command = new RegisterUserCommand(request.Email, request.UserName, request.Password);
+            var command = new RegisterUserCommand(request.Email, request.Password);
             return await mediator.Send(command);
         }).WithName("RegisterUser");
 
         group.MapPost("/login", async (IMediator mediator, LoginUserRequest request) =>
         {
-            var command = new LoginUserCommand(request.Username, request.Password);
+            var command = new LoginUserCommand(request.Email, request.Password);
             return await mediator.Send(command);
         }).WithName("LoginUser");
 
@@ -42,26 +42,10 @@ public static class AuthRoutes
             return await mediator.Send(command);
         }).WithName("RefreshToken");
 
-        group.MapGet("/google", async (IMediator mediator, string token) =>
+        group.MapPost("/google", async (IMediator mediator, ThirdPartyTokenRequest request) =>
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(token);
-            var email = payload.Email;
-            var firstName = payload.GivenName;
-            var lastName = payload.FamilyName;
-
-            return await mediator.Send(new ThirdPartyAuthCommand(email, firstName, lastName));
+            var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
+            return await mediator.Send(new ThirdPartyAuthCommand(payload.Email, payload.GivenName, payload.FamilyName));
         }).WithName("GoogleLogin");
-
-        //group.MapGet("/login/github", async (HttpContext context) =>
-        //{
-        //    var authProperties = new AuthenticationProperties { RedirectUri = "api/auth/github-callback" };
-        //    return Results.Challenge(authProperties, new[] { "GitHub" });
-        //}).WithName("GithubLogin");
-
-        //group.MapGet("/github-callback", async (IMediator mediator) =>
-        //{
-        //        var response = await mediator.Send(new ThirdPartyAuthCommand("GitHub"));
-        //    return response;
-        //}).WithName("GitHubCallback");
     }
 }

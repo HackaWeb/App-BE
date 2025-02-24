@@ -9,7 +9,7 @@ using System.Net;
 
 namespace App.Application.Handlers.Auth;
 
-public record LoginUserCommand(string username, string password) : IRequest<TokenResponse>;
+public record LoginUserCommand(string email, string password) : IRequest<TokenResponse>;
 
 public class LoginUserHandler(
     UserManager<Domain.Models.User> userManager,
@@ -19,7 +19,7 @@ public class LoginUserHandler(
 {
     public async Task<TokenResponse> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByNameAsync(request.username);
+        var user = await userManager.FindByEmailAsync(request.email);
         if (user is null)
         {
             throw new DomainException("Invalid email or password.", (int)HttpStatusCode.Unauthorized);
