@@ -1,5 +1,7 @@
 ﻿using App.Application.Handlers.Users;
+using App.RestContracts.Shared;
 using App.RestContracts.Users.Requests;
+using App.RestContracts.Users.Responses;
 using MediatR;
 
 namespace App.Api.Routes;
@@ -32,6 +34,35 @@ public static class UserRoutes
                 return await mediator.Send(new GetAllUsersCommand());
             })
             .WithName("GetAllUsers")
+            .RequireAuthorization("Admin");
+
+        group.MapPost("/{userId}/image", async (string userId, IFormFile file, IMediator mediator) =>
+            { 
+                if (file == null || file.Length == 0)
+                {
+                    return Results.BadRequest("No file uploaded");
+                }
+
+                return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
+            })
+            .WithName("UploadUserImage")
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<UserImageResponse>(StatusCodes.Status200OK)
+            .Produces<ResultResponse>(StatusCodes.Status400BadRequest)
+            .RequireAuthorization("Admin")
+            .DisableAntiforgery();
+
+
+        group.MapDelete("/{userId}/image", async (string userId, IMediator mediator) =>
+            {
+                await mediator.Send(new DeleteUserImageCommand(userId));
+
+                return new ResultResponse
+                {
+                    IsSuccess = true,
+                };
+            })
+            .WithName("DeleteUserImage")
             .RequireAuthorization("Admin");
     }
 }
