@@ -126,12 +126,11 @@ public static class ServiceExtensions
     {
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAll", policy =>
-            {
-                policy.AllowAnyOrigin()
+            options.AddPolicy("AllowAll",
+                policy => policy.SetIsOriginAllowed(_ => true)
+                    .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
+                    .AllowCredentials());
         });
 
         return services;

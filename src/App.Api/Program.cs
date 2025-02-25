@@ -1,4 +1,5 @@
 using App.Api.Extensions;
+using App.Api.Hubs;
 using App.Api.Middleware;
 using App.Api.Routes;
 using App.DataContext;
@@ -11,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 builder.Services.AddCorsPolicies();
 builder.Services.ConfigureMediatR();
+builder.Services.AddSignalR();
+builder.Logging.AddConsole();
 
 builder.Services.AddIdentity();
 builder.Services.AddJwt(builder.Configuration);
@@ -22,21 +25,23 @@ var app = builder.Build();
 
 app.ConfigureIdentityRoles();
 
-app.UseMiddleware<ExceptionMiddleware>(); 
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors("AllowAll");
 
-app.UseAuthentication(); 
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
-
 app.MapControllers();
-app.MapAuthRoutes(); 
+app.MapAuthRoutes();
 app.MapProfileRoutes();
 app.MapUserRoutes();
+
+app.MapHub<ChatHub>("chat-hub");
 
 app.Run();
