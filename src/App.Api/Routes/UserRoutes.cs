@@ -26,7 +26,7 @@ public static class UserRoutes
                 return await mediator.Send(
                     new UpdateUserCommand(id, request.FirstName, request.LastName, request.Email));
             })
-            .WithName("UpdateUser")
+            .WithName("UpdateUserByAdmin")
             .RequireAuthorization("Admin");
 
         group.MapGet("/", async (IMediator mediator) =>
@@ -45,7 +45,7 @@ public static class UserRoutes
 
                 return Results.Ok(await mediator.Send(new UploadUserImageCommand(userId, file)));
             })
-            .WithName("UploadUserImage")
+            .WithName("UploadUserImageByAdmin")
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<UserImageResponse>(StatusCodes.Status200OK)
             .Produces<ResultResponse>(StatusCodes.Status400BadRequest)
@@ -62,7 +62,7 @@ public static class UserRoutes
                     IsSuccess = true,
                 };
             })
-            .WithName("DeleteUserImage")
+            .WithName("DeleteUserImageByAdmin")
             .RequireAuthorization("Admin");
     }
 }
