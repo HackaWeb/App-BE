@@ -8,7 +8,7 @@ using System.Net;
 
 namespace App.Application.Handlers.Users;
 
-public record UpdateUserCommand(string userId, string? firstName, string? lastName, string? email, string? username) : IRequest<UserModel>;
+public record UpdateUserCommand(string userId, string? firstName, string? lastName, string? email, string? username = null) : IRequest<UserModel>;
 
 public class UpdateUserHandler(UserManager<User> userManager) : IRequestHandler<UpdateUserCommand, UserModel>
 {

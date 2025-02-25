@@ -32,6 +32,10 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseMiddleware<UnauthorizedResponseMiddleware>();
+app.UseMiddleware<ForbiddenResponseMiddleware>();
+
 app.UseAuthorization();
 
 app.UseSwagger();

@@ -13,6 +13,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
     }
 
+    public DbSet<Notification> Notifications { get; set; }
     public DbSet<Sample> Samples { get; set; }
     public DbSet<ChildSample> ChildSamples { get; set; }
 
@@ -27,6 +28,28 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             .HasMany(s => s.Samples)
             .WithOne(s => s.User)
             .HasForeignKey(s => s.UserId);
+
+        builder.Entity<User>()
+            .HasMany(u => u.Notifications)
+            .WithOne(n => n.User)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<UserTag>()
+            .HasOne(ut => ut.User)
+            .WithMany(u => u.UserTags)
+            .HasForeignKey(ut => ut.UserId);
+
+        builder.Entity<UserTag>()
+            .HasOne(ut => ut.Tag)
+            .WithMany(t => t.UserTags)
+            .HasForeignKey(ut => ut.TagId);
+
+        builder.Entity<Notification>()
+            .HasOne(n => n.Sender)
+            .WithMany()
+            .HasForeignKey(n => n.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         base.OnModelCreating(builder);
     }

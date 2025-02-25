@@ -28,7 +28,7 @@ public static class ProfileRoutes
         group.MapPut("/", async (HttpContext httpContext, IMediator mediator, UpdateUserRequest request) =>
         {
             var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var command = new UpdateUserCommand(userId, request.FirstName, request.LastName, request.Email, request.Username);
+            var command = new UpdateUserCommand(userId, request.FirstName, request.LastName, request.Email);
             
             return await mediator.Send(command);
         })
