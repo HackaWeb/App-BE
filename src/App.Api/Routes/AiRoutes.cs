@@ -1,5 +1,6 @@
-﻿using App.Application.Services;
+﻿using App.Application.Handlers;
 using App.RestContracts.AI;
+using MediatR;
 
 namespace App.Api.Routes;
 
@@ -12,9 +13,9 @@ public static class AiRoutes
             .WithName("OpenAI")
             .WithTags("OpenAI");
 
-        group.MapPost("/", async (SendMessageRequest request, IOpenAIService service) =>
+        group.MapPost("/", async (SendMessageRequest request, IMediator mediator) =>
             {
-                return await service.GetChatCompletionAsync(request.Message);
+                return await mediator.Send(new SendToTrelloCommand(request.Message));
             })
             .WithName("SendMessageToAI");
     }

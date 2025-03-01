@@ -1,4 +1,5 @@
 ﻿using App.Application.Services;
+using App.Domain;
 using App.Domain.Exceptions;
 using MediatR;
 using System.Net;
@@ -14,24 +15,58 @@ namespace App.Application.Handlers
     {
         public async Task<string> Handle(SendToTrelloCommand command, CancellationToken cancellationToken)
         {
-            string openAiResponse = await openAiService.GetChatCompletionAsync(command.UserRequest);
-            //TrelloApiRequest apiRequest;
+            string prompt = $@"
+                You are an AI assistant for integrating with Trello. Please review the documentation at:  
+                https://developer.atlassian.com/cloud/trello/rest/
 
-            //try
-            //{
-            //    apiRequest = ParseCurlCommand(openAiResponse);
-            //    if (apiRequest is null)
-            //    {
-            //        throw new DomainException("The OpenAI response cannot be parsed as a valid curl command.", (int)HttpStatusCode.InternalServerError);
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    throw new DomainException(e.Message, (int)HttpStatusCode.InternalServerError);
-            //}
+                Based on the user’s request:
+                1. If the request is **valid** and can be fulfilled by Trello’s API, **respond only** with the following curl command (or an array of curl commands) **in exactly this format** (do not add any extra text or formatting before or after):
+
+                curl -X POST ""https://api.trello.com/1/boards/"" -H ""Content-Type: application/x-www-form-urlencoded"" -d ""name=BOARD-NAME&key=KEY&token=TOKEN""
+
+                Replace `name=back` (or any other parameter) as needed, but always include `key=KEY` and `token=TOKEN` exactly in uppercase. Ignore the absence of real token or key in the user’s request and **always** put the placeholders `KEY` and `TOKEN`.
+
+                2. If the request **cannot** be executed for **any** reason (e.g., invalid parameters, missing information, or something else preventing a valid Trello API call), then respond with **only** an error message WITH EXPLANATION. The error message must be in the **same language** the user used in their request, and contain **no additional text** beyond the error explanation.
+
+                API KEY: 478
+                TOKEN: ATTA
+
+                Process the following user request and respond accordingly:
+                ""{command.UserRequest}""
+                ";
+
+            string openAiResponse = await openAiService.GetChatCompletionAsync(prompt);
+            TrelloApiRequest apiRequest;
+
+            try
+            {
+                apiRequest = ParseCurlCommand(openAiResponse);
+                if (apiRequest is null)
+                {
+                    throw new DomainException($"The OpenAI response cannot be parsed as a valid curl command. {openAiResponse}", (int)HttpStatusCode.InternalServerError);
+                }
+            }
+            catch (Exception e)
+            {
+                return openAiResponse;
+            }
 
 
-            //string result = await ExecuteTrelloApiRequestAsync(apiRequest, httpClient);
+            if (apiRequest.Parameters != null)
+            {
+                if (apiRequest.Parameters.TryGetValue("key", out var keyVal))
+                {
+                    apiRequest.Parameters["key"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY) 
+                                                   ?? throw new DomainException("API KEY ABSENT", (int)HttpStatusCode.BadRequest);
+                }
+                if (apiRequest.Parameters.TryGetValue("token", out var tokenVal))
+                {
+                    apiRequest.Parameters["token"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY) 
+                                                     ?? throw new DomainException("TOKEN ABSENT", (int)HttpStatusCode.BadRequest);
+                }
+            }
+
+            string result = await ExecuteTrelloApiRequestAsync(apiRequest, httpClient);
             return openAiResponse;
         }
 
@@ -77,17 +112,19 @@ namespace App.Application.Handlers
                 throw new Exception("The provided response is not a valid curl command.");
             }
 
-            var request = new TrelloApiRequest();
-            request.Headers = new Dictionary<string, string>();
-            request.Parameters = new Dictionary<string, string>();
+            var request = new TrelloApiRequest
+            {
+                Headers = new Dictionary<string, string>(),
+                Parameters = new Dictionary<string, string>()
+            };
 
             var methodMatch = Regex.Match(curlCommand, @"-X\s+(\w+)");
             request.Method = methodMatch.Success ? methodMatch.Groups[1].Value.ToUpper() : "GET";
 
-            var urlMatch = Regex.Match(curlCommand, @"curl\s+['""]([^'""]+)['""]");
+            var urlMatch = Regex.Match(curlCommand, @"-X\s+\w+\s+""([^""]+)""");
             if (!urlMatch.Success)
             {
-                urlMatch = Regex.Match(curlCommand, @"-X\s+\w+\s+['""]([^'""]+)['""]");
+                urlMatch = Regex.Match(curlCommand, @"curl\s+""([^""]+)""");
             }
             if (urlMatch.Success)
             {
@@ -95,10 +132,10 @@ namespace App.Application.Handlers
             }
             else
             {
-                throw new Exception("URL not found in the curl command.");
+                throw new DomainException("URL not found in the curl command.");
             }
 
-            var headerMatches = Regex.Matches(curlCommand, @"-H\s+['""]([^:'""]+):\s*([^'""]+)['""]");
+            var headerMatches = Regex.Matches(curlCommand, @"-H\s+""([^:""]+):\s*([^""]+)""");
             foreach (Match match in headerMatches)
             {
                 if (match.Success)
@@ -107,7 +144,7 @@ namespace App.Application.Handlers
                 }
             }
 
-            var dataMatch = Regex.Match(curlCommand, @"-d\s+['""]([^'""]+)['""]");
+            var dataMatch = Regex.Match(curlCommand, @"-d\s+""([^""]+)""");
             if (dataMatch.Success)
             {
                 var dataString = dataMatch.Groups[1].Value;

@@ -13,8 +13,6 @@ internal class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
     }
 
-    public DbSet<Notification> Notifications { get; set; }
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<User>()
@@ -45,6 +43,16 @@ internal class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .HasForeignKey(n => n.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        builder.Entity<Credential>()
+            .HasOne(c => c.User)
+            .WithMany(u => u.Credentials)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Credential>()
+            .Property(c => c.UserCredentialType)
+            .HasConversion<string>();
 
         base.OnModelCreating(builder);
     }

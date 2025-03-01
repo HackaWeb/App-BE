@@ -1,11 +1,14 @@
 ﻿using App.Application.Handlers;
+using App.Application.Services;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace App.Api.Hubs;
 
-public class ChatHub(IMediator mediator) : Hub
+public class ChatHub(
+    IMediator mediator,
+    IUserService userService) : Hub
 {
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
 
@@ -19,7 +22,8 @@ public class ChatHub(IMediator mediator) : Hub
 
         try
         {
-            var chatMessage = new ChatMessage() { Sender = "User", SentAt = DateTime.UtcNow, Message = message, };
+            var user = await userService.GetByIdAsync(userId);
+            var chatMessage = new ChatMessage() { Sender = user.FirstName ?? "User", SentAt = DateTime.UtcNow, Message = message, };
 
             _chatHistory.AddOrUpdate(userId, key => new List<ChatMessage> { chatMessage },
                 (key, existingList) =>

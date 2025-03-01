@@ -65,4 +65,6 @@ jobs:
             DB_CONNECTION_STRING='${{ secrets.DB_CONNECTION_STRING }}' \
             AZURE_STORAGE_CONNECTION_STRING='${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}' \
             JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-            OPEN_AI_API_KEY='${{ secrets.OPEN_AI_API_KEY }}'
+            OPEN_AI_API_KEY='${{ secrets.OPEN_AI_API_KEY }}' \
+            TRELLO_API_KEY='${{ secrets.TRELLO_API_KEY}}' \
+            TRELLO_SECRET_KEY='${{ secrets.TRELLO_SECRET_KEY}}'

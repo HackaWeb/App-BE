@@ -20,5 +20,6 @@ namespace App.DataContext.Models
 
         public virtual List<Notification>? Notifications { get; set; }
         public virtual List<UserTag>? UserTags { get; set; }
+        public virtual ICollection<Credential> Credentials { get; set; } = new List<Credential>();
     }
 }
