@@ -1,10 +1,11 @@
-﻿using App.Application.Services;
+﻿using App.Application.Handlers;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace App.Api.Hubs;
 
-public class ChatHub(IOpenAIService openAIService) : Hub
+public class ChatHub(IMediator mediator) : Hub
 {
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
 
@@ -33,8 +34,7 @@ public class ChatHub(IOpenAIService openAIService) : Hub
                 });
 
 
-            var botResponse = await openAIService.GetChatCompletionAsync(message);
-
+            var botResponse = await mediator.Send(new SendToTrelloCommand(message));
             var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
 
             _chatHistory.AddOrUpdate(userId,
