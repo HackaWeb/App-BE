@@ -5,6 +5,8 @@ using App.Domain;
 using App.Domain.Enums;
 using App.Domain.Settings;
 using App.Infrastructure.Repository;
+using App.Infrastructure.Services;
+using App.Infrastructure.Settings;
 using AutoMapper.Extensions.ExpressionMapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -68,12 +70,20 @@ public static class ServiceExtensions
         services.AddLogging();
 
         services.AddScoped<IBlobStorageRepository, BlobStorageRepository>();
+        services.AddScoped<IOpenAIService, OpenAIService>();
+
         services.Configure<JwtSettings>(configuration.GetSection(nameof(JwtSettings)));
+        services.Configure<OpenAISettings>(configuration.GetSection(nameof(OpenAISettings)));
 
         services.AddAutoMapper(cfg =>
         {
             cfg.AddProfile<MapperProfiles>();
             cfg.AddExpressionMapping();
+        });
+
+        services.AddHttpClient<IOpenAIService, OpenAIService>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.openai.com/");
         });
 
         services.AddHttpContextAccessor();

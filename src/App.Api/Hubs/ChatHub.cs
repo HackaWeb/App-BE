@@ -1,13 +1,10 @@
-﻿using App.Domain.Models;
-using Azure;
-using Microsoft.AspNetCore.Identity;
+﻿using App.Application.Services;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
 
 namespace App.Api.Hubs;
 
-public class ChatHub : Hub
+public class ChatHub(IOpenAIService openAIService) : Hub
 {
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
 
@@ -21,12 +18,40 @@ public class ChatHub : Hub
 
         try
         {
-            // TODO: implement openAI integration
+            var connectionId = Context.ConnectionId;
+            var chatMessage = new ChatMessage() { Sender = "User", SentAt = DateTime.UtcNow, Message = message, };
 
-            string testResponse = "Hello from backend!";
-            await Task.Delay(5000);
+            _chatHistory.AddOrUpdate(connectionId, key => new List<ChatMessage> { chatMessage },
+                (key, existingList) =>
+                {
+                    existingList.Add(chatMessage);
+                    if (existingList.Count > 50)
+                    {
+                        int removeCount = existingList.Count - 50;
+                        existingList.RemoveRange(0, removeCount);
+                    }
+                    return existingList;
+                });
 
-            await Clients.Caller.SendAsync("ReceiveResponse", testResponse);
+
+            var botResponse = await openAIService.GetChatCompletionAsync(message);
+
+            var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
+
+            _chatHistory.AddOrUpdate(connectionId,
+                key => new List<ChatMessage> { botMessage },
+                (key, existingList) =>
+                {
+                    existingList.Add(botMessage);
+                    if (existingList.Count > 50)
+                    {
+                        int removeCount = existingList.Count - 50;
+                        existingList.RemoveRange(0, removeCount);
+                    }
+                    return existingList;
+                });
+
+            await Clients.Caller.SendAsync("ReceiveResponse", botResponse);
         }
         catch (Exception ex)
         {
@@ -40,28 +65,22 @@ public class ChatHub : Hub
         await base.OnConnectedAsync();
     }
 
-    public Task<List<ChatMessage>> LoadChatHistory(string questId)
+    public Task<List<ChatMessage>> LoadChatHistory()
     {
-        return Task.FromResult(_chatHistory.ContainsKey(questId) ? _chatHistory[questId] : new List<ChatMessage>());
+        var connectionId = Context.ConnectionId;
+        return Task.FromResult(_chatHistory.ContainsKey(connectionId) ? _chatHistory[connectionId] : new List<ChatMessage>());
     }
 
     public override Task OnDisconnectedAsync(System.Exception exception)
     {
         return base.OnDisconnectedAsync(exception);
     }
-
-    private string GetPrivateChatKey(string user1, string user2)
-    {
-        return string.Compare(user1, user2, StringComparison.Ordinal) < 0 ? $"{user1}_{user2}" : $"{user2}_{user1}";
-    }
 }
 
 
 public class ChatMessage
 {
-    public int Id { get; set; }
-    public string SenderUserId { get; set; } = string.Empty;
-    public string QuestId { get; set; } = string.Empty;
+    public string Sender { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
 }
