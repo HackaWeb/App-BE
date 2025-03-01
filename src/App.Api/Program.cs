@@ -1,4 +1,5 @@
 using App.Api.Extensions;
+using App.Api.Hubs;
 using App.Api.Middleware;
 using App.Api.Routes;
 using App.DataContext;
@@ -11,12 +12,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 builder.Services.AddCorsPolicies();
 builder.Services.ConfigureMediatR();
+builder.Services.AddSignalR();
+builder.Logging.AddConsole();
 
-builder.Services.AddJwt(builder.Configuration);
+builder.Services.AddIdentity();
+builder.Services.AddJwtSettings(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddDbContext(builder.Configuration);
-builder.Services.AddIdentity();
 
 var app = builder.Build();
 
@@ -24,15 +27,26 @@ app.ConfigureIdentityRoles();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseMiddleware<UnauthorizedResponseMiddleware>();
+app.UseMiddleware<ForbiddenResponseMiddleware>();
+
 app.UseAuthorization();
 
-app.MapAuthRoutes();
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.MapControllers();
+app.MapAuthRoutes();
+app.MapProfileRoutes();
+app.MapUserRoutes();
+app.MapTagRoutes();
+
+app.MapHub<ChatHub>("chat-hub");
 
 app.Run();

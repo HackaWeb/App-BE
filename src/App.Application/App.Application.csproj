@@ -9,15 +9,13 @@
 
 	<ItemGroup>
 	  <PackageReference Include="MediatR" Version="12.4.1" />
-	  <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+	  <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\App.Domain\App.Domain.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Services\" />
+	  <ProjectReference Include="..\contracts\App.RestContracts\App.RestContracts.csproj" />
 	</ItemGroup>
 
 </Project>

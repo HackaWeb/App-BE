@@ -1,11 +1,10 @@
-﻿using App.Domain;
-using App.Infrastructure.Repositories;
+﻿using App.Application.Repositories;
+using App.Domain;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
-using System.IO;
 
-namespace App.DataContext.Repository;
+namespace App.Infrastructure.Repository;
 
 public class BlobStorageRepository : IBlobStorageRepository
 {
@@ -13,7 +12,8 @@ public class BlobStorageRepository : IBlobStorageRepository
 
     public BlobStorageRepository(IConfiguration configuration)
     {
-        var connectionString = Environment.GetEnvironmentVariable(AppConstants.AZURE_STORAGE_CONNECTION_STRING);
+        var connectionString = Environment.GetEnvironmentVariable(AppConstants.AZURE_STORAGE_CONNECTION_STRING)
+            ?? configuration.GetConnectionString("BlobConnectionString");
         _blobServiceClient = new BlobServiceClient(connectionString);
     }
 

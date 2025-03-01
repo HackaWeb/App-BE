@@ -1,8 +1,9 @@
-﻿using App.DataContext.Repository;
+﻿using App.Application.Repositories;
+using App.Application.Services;
+using App.DataContext.Models;
+using App.DataContext.Repositories;
 using App.Domain;
 using App.Domain.Enums;
-using App.Domain.Models;
-using App.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,23 +21,26 @@ public static class DependecyInjection
 
         services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionSettings));
 
-        services.AddScoped<IBlobStorageRepository, BlobStorageRepository>();
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUserService, UserRepository>();
+        services.AddScoped<UserManager<DataContext.Models.User>>();
 
         return services;
     }
 
     public static IServiceCollection AddIdentity(this IServiceCollection services)
     {
-        services.AddIdentity<User, IdentityRole<Guid>>(options =>
-        {
-            options.Password.RequireDigit = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequireNonAlphanumeric = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireLowercase = true;
-        })
+        services.AddIdentityCore<User>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
+            .AddSignInManager<SignInManager<User>>()
             .AddDefaultTokenProviders();
 
         return services;

@@ -64,8 +64,4 @@ jobs:
             ASPNETCORE_ENVIRONMENT=Development \
             DB_CONNECTION_STRING='${{ secrets.DB_CONNECTION_STRING }}' \
             AZURE_STORAGE_CONNECTION_STRING='${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}' \
-            JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-            GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
-            GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
-            GITHUB_CLIENT_ID='${{ secrets.GH_CLIENT_ID }}' \
-            GITHUB_CLIENT_SECRET='${{ secrets.GH_CLIENT_SECRET }}'
+            JWT_SECRET='${{ secrets.JWT_SECRET }}'

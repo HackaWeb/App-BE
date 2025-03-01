@@ -1,20 +1,18 @@
-﻿using App.Application.Responses;
+﻿using App.Application.Extensions;
+using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Enums;
-using App.Domain.Exceptions;
 using App.Domain.Models;
 using App.Domain.Settings;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.Net;
 
 namespace App.Application.Handlers.Auth;
 
-public record RegisterUserCommand(string email, string username, string password) : IRequest<TokenResponse>;
+public record RegisterUserCommand(string email, string password) : IRequest<TokenResponse>;
 
 public class RegisterUserHandler(
-    UserManager<User> userManager,
+    IUserService userService,
     IJwtTokenService jwtTokenService,
     IOptions<JwtSettings> jwtTokenSettings) : IRequestHandler<RegisterUserCommand, TokenResponse>
 {
@@ -22,28 +20,22 @@ public class RegisterUserHandler(
     {
         var user = new User
         {
-            UserName = request.username,
+            UserName = ApplicationExtensions.GenerateRandomUsername(),
             Email = request.email,
             CreatedAt = DateTime.Now,
         };
 
-        var result = await userManager.CreateAsync(user, request.password);
-        if (!result.Succeeded)
-        {
-            throw new DomainException("User registration failed.", (int)HttpStatusCode.BadRequest);
-        }
+        await userService.CreateAsync(user, request.password);
+        await userService.AddToRoleAsync(user, UserRoles.USER.ToString());
 
-        await userManager.AddToRoleAsync(user, UserRoles.USER.ToString());
-
-        var roles = await userManager.GetRolesAsync(user);
+        var roles = await userService.GetRolesAsync(user);
         var token = jwtTokenService.GenerateToken(user, roles);
         var refreshToken = jwtTokenService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.Now.AddDays(jwtTokenSettings.Value.RefreshTokenExpiryInDays);
 
-        await userManager.UpdateAsync(user);
-
+        await userService.UpdateAsync(user);
         return new TokenResponse(token, refreshToken);
     }
 }

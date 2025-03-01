@@ -1,11 +1,11 @@
-﻿using App.Domain.Models;
+﻿using App.DataContext.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.DataContext;
 
-public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+internal class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     public const string DefaultSchemaName = "dbo";
 
@@ -13,20 +13,38 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
     }
 
-    public DbSet<Sample> Samples { get; set; }
-    public DbSet<ChildSample> ChildSamples { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.Entity<Sample>()
-            .HasMany(s => s.ChildSamples)
-            .WithOne(c => c.Sample)
-            .HasForeignKey(c => c.SampleId);
-
         builder.Entity<User>()
-            .HasMany(s => s.Samples)
-            .WithOne(s => s.User)
-            .HasForeignKey(s => s.UserId);
+            .HasMany(u => u.Notifications)
+            .WithOne(n => n.User)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<UserTag>()
+            .HasOne(ut => ut.User)
+            .WithMany(u => u.UserTags)
+            .HasForeignKey(ut => ut.UserId);
+
+        builder.Entity<UserTag>()
+            .HasOne(ut => ut.Tag)
+            .WithMany(t => t.UserTags)
+            .HasForeignKey(ut => ut.TagId);
+
+        builder.Entity<Notification>(entity =>
+        {
+            entity.HasOne(n => n.User)
+                .WithMany(u => u.Notifications)
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(n => n.Sender)
+                .WithMany()
+                .HasForeignKey(n => n.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         base.OnModelCreating(builder);
     }

@@ -1,4 +1,5 @@
 ﻿using App.Domain.Exceptions;
+using App.RestContracts.Shared;
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -29,7 +30,7 @@ public class ExceptionMiddleware(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception occurred.");
-            await HandleGenericExceptionAsync(context);
+            await HandleGenericExceptionAsync(context, ex.Message);
         }
     }
 
@@ -37,11 +38,11 @@ public class ExceptionMiddleware(
     {
         var statusCode = exception.InternalStatusCode ?? (int)HttpStatusCode.BadRequest;
 
-        var response = new
+        var response = new ResultResponse
         {
-            statusCode,
-            message = exception.Message,
-            additionalInfo = exception.AdditionalInfo.Any() ? exception.AdditionalInfo : null
+            IsSuccess = false,
+            StatusCode = statusCode,
+            ErrorMessage = exception.Message,
         };
 
         var jsonResponse = JsonSerializer.Serialize(response);
@@ -51,12 +52,13 @@ public class ExceptionMiddleware(
         return context.Response.WriteAsync(jsonResponse);
     }
 
-    private static Task HandleGenericExceptionAsync(HttpContext context)
+    private static Task HandleGenericExceptionAsync(HttpContext context, string details)
     {
-        var response = new
+        var response = new ResultResponse
         {
-            statusCode = (int)HttpStatusCode.InternalServerError,
-            message = "An unexpected error occurred."
+            IsSuccess = false,
+            StatusCode = (int)HttpStatusCode.InternalServerError,
+            ErrorMessage = $"An unexpected error occurred. Details: {details}"
         };
 
         var jsonResponse = JsonSerializer.Serialize(response, JsonOptions);
