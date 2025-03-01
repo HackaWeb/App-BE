@@ -1,4 +1,5 @@
 ﻿using App.Domain.Models;
+using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
@@ -6,115 +7,37 @@ using System.ComponentModel.DataAnnotations;
 
 namespace App.Api.Hubs;
 
-public class ChatHub(UserManager<User> userManager) : Hub
+public class ChatHub : Hub
 {
-    private static readonly ConcurrentDictionary<string, string> _connectedUsers = new();
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
-    private static readonly ConcurrentDictionary<string, List<ChatMessage>> _privateChatHistory = new();
 
-    public async Task SendMessage(string user, string message)
+    public async Task SendMessage(string message)
     {
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        if (string.IsNullOrEmpty(message))
+        {
+            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Confusion: a note can't be empty.");
+            return;
+        }
+
+        try
+        {
+            // TODO: implement openAI integration
+
+            string testResponse = "Hello from backend!";
+            await Task.Delay(5000);
+
+            await Clients.Caller.SendAsync("ReceiveResponse", testResponse);
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("ReceiveSystemMessage", $"Error while processing a request: {ex.Message}");
+        }
     }
 
     public override async Task OnConnectedAsync()
     {
-        var httpContext = Context.GetHttpContext();
-        
-        var userId = httpContext?.Request.Query["userId"];
-        var questId = httpContext?.Request.Query["questId"];
-
-        if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(questId))
-        {
-            _connectedUsers[userId] = Context.ConnectionId;
-
-            await Groups.AddToGroupAsync(Context.ConnectionId, questId);
-            await Clients.Group(questId).SendAsync("ReceiveSystemMessage", $"{userId} joined to {questId}");
-        }
-
+        await Clients.Caller.SendAsync("ReceiveSystemMessage", "The connection is established. You can send requests.");
         await base.OnConnectedAsync();
-    }
-
-    public async Task SendMessageToRoom(string questId, string userId, string message)
-    {
-        if (!_connectedUsers.TryGetValue(userId, out string? connectionId))
-        {
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Error: You are not connected to the chat room.");
-            return;
-        }
-
-        if (connectionId != Context.ConnectionId)
-        {
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Error: Invalid attempt to send a message.");
-            return;
-        }
-
-        var httpContext = Context.GetHttpContext();
-        var userQuestId = httpContext?.Request.Query["questId"];
-
-        if (userQuestId.ToString() != questId)
-        {
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Error: You are not a member of this chat room.");
-            return;
-        }
-
-        var chatMessage = new ChatMessage
-        {
-            SenderUserId = userId,
-            QuestId = questId,
-            Message = message,
-            SentAt = DateTime.UtcNow,
-        };
-
-        if (!_chatHistory.ContainsKey(questId))
-        {
-            _chatHistory[questId] = new List<ChatMessage>();
-        }
-
-        if (_chatHistory[questId].Count > 100)
-        {
-            _chatHistory[questId].RemoveAt(0);
-        }
-
-        await Clients.Group(questId).SendAsync("ReceiveMessage", userId, message);
-    }
-
-    public async Task SendPrivateMessage(string targetUserId, string message, string questId)
-    {
-        var senderUserId = _connectedUsers.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
-        if (string.IsNullOrEmpty(senderUserId))
-        {
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Error: You are not connected.");
-            return;
-        }
-
-        if (!_connectedUsers.TryGetValue(targetUserId, out string? targetConnectionId))
-        {
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", $"Error: User {targetUserId} is not online.");
-            return;
-        }
-
-        var chatMessage = new ChatMessage()
-        {
-            Message = message, SenderUserId = senderUserId, SentAt = DateTime.UtcNow, QuestId = questId
-        };
-
-        string chatKey = GetPrivateChatKey(senderUserId, targetUserId);
-
-        if (!_privateChatHistory.ContainsKey(chatKey))
-        {
-            _privateChatHistory[chatKey] = new List<ChatMessage>();
-        }
-
-        _privateChatHistory[chatKey].Add(chatMessage);
-
-        if (_privateChatHistory[chatKey].Count > 50)
-        {
-            _privateChatHistory[chatKey].RemoveAt(0);
-        }
-
-        await Clients.Client(targetConnectionId).SendAsync("ReceivePrivateMessage", senderUserId, message);
-        await Clients.Caller.SendAsync("ReceivePrivateMessage", $"To {targetUserId}", message);
     }
 
     public Task<List<ChatMessage>> LoadChatHistory(string questId)
@@ -124,12 +47,6 @@ public class ChatHub(UserManager<User> userManager) : Hub
 
     public override Task OnDisconnectedAsync(System.Exception exception)
     {
-        var userId = _connectedUsers.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
-        if (!string.IsNullOrEmpty(userId))
-        {
-            _connectedUsers.TryRemove(userId, out _);
-        }
-
         return base.OnDisconnectedAsync(exception);
     }
 
