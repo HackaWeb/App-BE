@@ -68,7 +68,9 @@ public class ChatHub(IOpenAIService openAIService) : Hub
     public Task<List<ChatMessage>> LoadChatHistory()
     {
         var connectionId = Context.ConnectionId;
-        return Task.FromResult(_chatHistory.ContainsKey(connectionId) ? _chatHistory[connectionId] : new List<ChatMessage>());
+        var history = _chatHistory.ContainsKey(connectionId) ? _chatHistory[connectionId] : new List<ChatMessage>();
+        var sortedHistory = history.OrderBy(msg => msg.SentAt).ToList();
+        return Task.FromResult(sortedHistory);
     }
 
     public override Task OnDisconnectedAsync(System.Exception exception)
