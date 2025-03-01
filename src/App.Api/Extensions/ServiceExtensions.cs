@@ -74,6 +74,7 @@ public static class ServiceExtensions
 
         services.Configure<JwtSettings>(configuration.GetSection(nameof(JwtSettings)));
         services.Configure<OpenAISettings>(configuration.GetSection(nameof(OpenAISettings)));
+        services.Configure<TrelloSettings>(configuration.GetSection(nameof(TrelloSettings)));
 
         services.AddAutoMapper(cfg =>
         {

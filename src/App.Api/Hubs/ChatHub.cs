@@ -1,4 +1,6 @@
-﻿using App.Application.Handlers;
+﻿using App.Application;
+using App.Application.Handlers;
+using App.Application.Handlers.Trello;
 using App.Application.Services;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
@@ -37,8 +39,22 @@ public class ChatHub(
                     return existingList;
                 });
 
+            var commandType = await mediator.Send(new IdentityCommand(message));
 
-            var botResponse = await mediator.Send(new SendToTrelloCommand(message));
+            string botResponse;
+            switch (commandType)
+            {
+                case PromptCommands.AddCards: 
+                    botResponse = await mediator.Send(new SetupTrelloCardsCommand(message));
+                    break;
+                case PromptCommands.CreateBord:
+                    botResponse = await mediator.Send(new SetupTrelloBoardCommand(message));
+                    break;
+                default:
+                    botResponse = commandType.ToString();
+                    break;
+            }
+            
             var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
 
             _chatHistory.AddOrUpdate(userId,
