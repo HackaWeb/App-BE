@@ -8,7 +8,7 @@ public class ChatHub(IOpenAIService openAIService) : Hub
 {
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
 
-    public async Task SendMessage(string message)
+    public async Task SendMessage(string userId, string message)
     {
         if (string.IsNullOrEmpty(message))
         {
@@ -18,10 +18,9 @@ public class ChatHub(IOpenAIService openAIService) : Hub
 
         try
         {
-            var connectionId = Context.ConnectionId;
             var chatMessage = new ChatMessage() { Sender = "User", SentAt = DateTime.UtcNow, Message = message, };
 
-            _chatHistory.AddOrUpdate(connectionId, key => new List<ChatMessage> { chatMessage },
+            _chatHistory.AddOrUpdate(userId, key => new List<ChatMessage> { chatMessage },
                 (key, existingList) =>
                 {
                     existingList.Add(chatMessage);
@@ -38,7 +37,7 @@ public class ChatHub(IOpenAIService openAIService) : Hub
 
             var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
 
-            _chatHistory.AddOrUpdate(connectionId,
+            _chatHistory.AddOrUpdate(userId,
                 key => new List<ChatMessage> { botMessage },
                 (key, existingList) =>
                 {
@@ -65,12 +64,17 @@ public class ChatHub(IOpenAIService openAIService) : Hub
         await base.OnConnectedAsync();
     }
 
-    public Task<List<ChatMessage>> LoadChatHistory()
+    public Task<List<ChatMessage>> LoadChatHistory(string userId)
     {
-        var connectionId = Context.ConnectionId;
-        var history = _chatHistory.ContainsKey(connectionId) ? _chatHistory[connectionId] : new List<ChatMessage>();
+        var history = _chatHistory.ContainsKey(userId) ? _chatHistory[userId] : new List<ChatMessage>();
         var sortedHistory = history.OrderBy(msg => msg.SentAt).ToList();
         return Task.FromResult(sortedHistory);
+    }
+
+    public async Task CleanHistory(string userId)
+    {
+        _chatHistory.TryRemove(userId, out _);
+        await Task.CompletedTask;
     }
 
     public override Task OnDisconnectedAsync(System.Exception exception)
