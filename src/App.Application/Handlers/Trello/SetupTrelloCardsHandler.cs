@@ -106,13 +106,13 @@ public class SetupTrelloCardsHandler(
                     apiRequest.Parameters["key"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY)
                                                    ?? trelloOptions.Value.TrelloApiKey;
                 }
-                apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_API_KEY", trelloOptions.Value.TrelloApiKey);
+                apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_API_KEY", Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY));
                 if (apiRequest.Parameters.TryGetValue("token", out var tokenVal))
                 {
                     apiRequest.Parameters["token"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY)
                                                      ?? trelloOptions.Value.TrelloSecret;
                 }
-                apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_TOKEN", trelloOptions.Value.TrelloSecret);
+                apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_TOKEN", Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY));
             }
 
             var result = await ApplicationHelper.ExecuteTrelloApiRequestAsync(apiRequest, httpClient);
