@@ -1,4 +1,5 @@
 ﻿using App.Application.Services;
+using App.Domain;
 using App.Domain.Exceptions;
 using App.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
@@ -30,7 +31,10 @@ namespace App.Infrastructure.Services
             var jsonContent = JsonConvert.SerializeObject(requestData);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.Value.ApiKey);
+            var apiKey = Environment.GetEnvironmentVariable(AppConstants.OPEN_AI_API_KEY)
+                         ?? settings.Value.ApiKey;
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             var response = await httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
 
