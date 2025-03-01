@@ -5,6 +5,7 @@ using App.Application.Services;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace App.Api.Hubs;
 
@@ -38,21 +39,29 @@ public class ChatHub(
                     }
                     return existingList;
                 });
-
-            var commandType = await mediator.Send(new IdentityCommand(message));
-
             string botResponse;
-            switch (commandType)
+            try
             {
-                case PromptCommands.AddCards: 
-                    botResponse = await mediator.Send(new SetupTrelloCardsCommand(message));
-                    break;
-                case PromptCommands.CreateBord:
-                    botResponse = await mediator.Send(new SetupTrelloBoardCommand(message));
-                    break;
-                default:
-                    botResponse = commandType.ToString();
-                    break;
+                var commandType = await mediator.Send(new IdentityCommand(message));
+
+                
+                switch (commandType)
+                {
+                    case PromptCommands.AddCards:
+                        botResponse = await mediator.Send(new SetupTrelloCardsCommand(message));
+                        break;
+                    case PromptCommands.CreateBord:
+                        botResponse = await mediator.Send(new SetupTrelloBoardCommand(message));
+                        break;
+                    default:
+                        botResponse = commandType.ToString();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                await Clients.Caller.SendAsync("ReceiveResponse", ex.Message);
+                return;
             }
             
             var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
