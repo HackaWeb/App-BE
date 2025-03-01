@@ -1,31 +1,38 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
+using App.Api.Extensions;
+using App.Api.Middleware;
+using App.Api.Routes;
+using App.DataContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwagger();
+builder.Services.AddCorsPolicies();
+builder.Services.ConfigureMediatR();
+
+builder.Services.AddJwt(builder.Configuration);
+builder.Services.AddServices(builder.Configuration);
+
+builder.Services.AddDbContext(builder.Configuration);
+builder.Services.AddIdentity();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.ConfigureIdentityRoles();
+
+app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapAuthRoutes();
 app.MapControllers();
 
 app.Run();

@@ -11,4 +11,6 @@ public interface IRepository<T> where T : class
     Task<List<T>> Find(Expression<Func<T, bool>> predicate, bool isReadOnly = true, params Expression<Func<T, object>>[] includes);
 
     Task<T> Add(T entity);
+
+    Task SaveChangesAsync();
 }

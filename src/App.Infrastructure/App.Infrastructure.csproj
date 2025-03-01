@@ -7,4 +7,18 @@
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="MediatR" Version="12.4.1" />
+	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.1.0" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\App.Application\App.Application.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Settings\Github\" />
+	</ItemGroup>
+
 </Project>
