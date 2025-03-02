@@ -27,6 +27,13 @@ public static class TransactionRoutes
             .WithName("GetUserTransactions")
             .RequireAuthorization();
 
+        group.MapGet("/{userId:guid}", async (Guid userId, IMediator mediator) =>
+            {
+                return await mediator.Send(new GetUserTransactionsCommand(userId));
+            })
+            .WithName("GetTransactionsByUserIdByAdmin")
+            .RequireAuthorization("Admin");
+
         group.MapGet("/all", async (IMediator mediator) =>
             {
                 return await mediator.Send(new GetAllTransactionsCommand());
