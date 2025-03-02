@@ -44,7 +44,6 @@ public class ChatHub(
                     return existingList;
                 });
 
-            string botResponse = default;
             try
             {
                 var thirdPartyType = await mediator.Send(new GetThirdPartyServiceCommand(message));
@@ -72,6 +71,8 @@ public class ChatHub(
                 await Clients.Caller.SendAsync("ReceiveResponse", ex.Message);
                 return;
             }
+
+            var botResponse = await mediator.Send(new ConfirmUserCommand(message));
             
             var botMessage = new ChatMessage { Sender = "Bot", SentAt = DateTime.UtcNow, Message = botResponse, };
 
