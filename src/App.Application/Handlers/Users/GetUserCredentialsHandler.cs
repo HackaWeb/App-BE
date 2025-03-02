@@ -27,7 +27,7 @@ namespace App.Application.Handlers.Users
             var userModel = new UserModel()
             {
                 IsAdmin = isAdmin,
-                Balance = lastTransaction.Balance,
+                Balance = lastTransaction?.Balance ?? 0,
                 LastName = user.LastName,
                 AvatarUrl = user.AvatarUrl,
                 CreatedAt = user.CreatedAt,

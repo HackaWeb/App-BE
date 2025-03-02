@@ -25,7 +25,7 @@ namespace App.Application.Handlers.Users
                 userModels.Add(new UserModel
                 {
                     Id = user.Id,
-                    Balance = lastTransaction.Balance,
+                    Balance = lastTransaction?.Balance ?? 0,
                     IsAdmin = isAdmin,
                     AvatarUrl = user.AvatarUrl,
                     CreatedAt = user.CreatedAt,

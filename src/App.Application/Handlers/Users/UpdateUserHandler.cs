@@ -40,7 +40,7 @@ public class UpdateUserHandler(IUserService userService, IUnitOfWork unitOfWork)
         return new UserModel{
             Id = user.Id,
             IsAdmin = isAdmin,
-            Balance = lastTransaction.Balance,
+            Balance = lastTransaction?.Balance ?? 0,
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,
