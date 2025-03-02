@@ -24,7 +24,7 @@ namespace App.Application.Handlers
                 ";
 
 
-            return await openAiService.GetChatCompletionAsync(request.userInput);
+            return await openAiService.GetChatCompletionAsync(confirmationPrompt);
         }
     }
 }

@@ -51,7 +51,6 @@ public class ChatHub(
                 if (thirdPartyType == ThirdPartyService.Slack)
                 {
                     await mediator.Send(new SetupSlackCommand(message));
-                    return;
                 }
 
                 if (thirdPartyType == ThirdPartyService.Trello)
