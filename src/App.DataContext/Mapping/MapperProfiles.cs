@@ -21,6 +21,9 @@ namespace App.DataContext.Mapping
 
             CreateMap<Transaction, Domain.Models.Transaction>()
                 .ReverseMap();
+
+            CreateMap<Credential, Domain.Models.Credential>()
+                .ReverseMap();
         }
     }
 }

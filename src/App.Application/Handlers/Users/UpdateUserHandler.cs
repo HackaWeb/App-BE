@@ -1,3 +1,4 @@
+using App.Application.Repositories;
 using App.Application.Services;
 using App.Domain.Enums;
 using App.Domain.Exceptions;
@@ -9,7 +10,7 @@ namespace App.Application.Handlers.Users;
 
 public record UpdateUserCommand(string userId, string? firstName, string? lastName, string? email, string? username = null) : IRequest<UserModel>;
 
-public class UpdateUserHandler(IUserService userService) : IRequestHandler<UpdateUserCommand, UserModel>
+public class UpdateUserHandler(IUserService userService, IUnitOfWork unitOfWork) : IRequestHandler<UpdateUserCommand, UserModel>
 {
     public async Task<UserModel> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
@@ -32,10 +33,14 @@ public class UpdateUserHandler(IUserService userService) : IRequestHandler<Updat
             user.LastName = request.username;
 
         var isAdmin = await userService.IsInRoleAsync(user, nameof(UserRoles.ADMIN));
+        var userTransaction = await unitOfWork.TransactionRepository.Find(x => x.UserId == user.Id);
+        var lastTransaction = userTransaction.OrderByDescending(x => x.TransactionDate).FirstOrDefault();
         await userService.UpdateAsync(user);
 
         return new UserModel{
             Id = user.Id,
+            IsAdmin = isAdmin,
+            Balance = lastTransaction.Balance,
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,

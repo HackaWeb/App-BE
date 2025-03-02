@@ -10,6 +10,7 @@ namespace App.DataContext.Repositories
         public IRepository<UserTag> UserTagRepository => new Repository<UserTag, Models.UserTag>(context, mapper);
         public IRepository<Notification> NotificationRepository => new Repository<Notification, Models.Notification>(context, mapper);
         public IRepository<Transaction> TransactionRepository => new Repository<Transaction, Models.Transaction>(context, mapper);
+        public IRepository<Credential> CredentialsRepository => new Repository<Credential, Models.Credential>(context, mapper);
 
         public async Task SaveChangesAsync()
         {

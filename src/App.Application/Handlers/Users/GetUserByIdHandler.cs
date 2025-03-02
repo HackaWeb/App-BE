@@ -1,4 +1,6 @@
+using App.Application.Repositories;
 using App.Application.Services;
+using App.Domain.Enums;
 using App.Domain.Exceptions;
 using App.RestContracts.Models;
 using MediatR;
@@ -9,7 +11,8 @@ namespace App.Application.Handlers.Users;
 public record GetUserByIdCommand(string userId) : IRequest<UserModel>;
 
 public class GetUserByIdHandler(
-    IUserService userService) : IRequestHandler<GetUserByIdCommand, UserModel>
+    IUserService userService,
+    IUnitOfWork unitOfWork) : IRequestHandler<GetUserByIdCommand, UserModel>
 {
     public async Task<UserModel> Handle(GetUserByIdCommand request, CancellationToken cancellationToken)
     {
@@ -19,9 +22,15 @@ public class GetUserByIdHandler(
             throw new DomainException("User was not found", (int)HttpStatusCode.Unauthorized);
         }
 
+        var isAdmin = await userService.IsInRoleAsync(user, nameof(UserRoles.ADMIN));
+        var userTransaction = await unitOfWork.TransactionRepository.Find(x => x.UserId == user.Id);
+        var lastTransaction = userTransaction.OrderByDescending(x => x.TransactionDate).FirstOrDefault();
+
         var userRest = new UserModel
         {
             Id = user.Id,
+            IsAdmin = isAdmin,
+            Balance = lastTransaction.Balance,
             FirstName = user.FirstName,
             LastName = user.LastName,
             AvatarUrl = user.AvatarUrl,

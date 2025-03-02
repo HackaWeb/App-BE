@@ -18,9 +18,9 @@ namespace App.Application.Handlers.Transactions
             {
                 Amount = request.amount,
                 TransactionDate = request.transactionDate,
-                Balance = request.type == TransactionType.Deposit 
-                    ? lastTransaction?.Balance ?? 0 + request.amount 
-                    : lastTransaction?.Balance ?? 0 - request.amount,
+                Balance = request.type == TransactionType.Deposit
+                    ? ((lastTransaction?.Balance ?? 0) + request.amount)
+                    : ((lastTransaction?.Balance ?? 0) - request.amount),
                 Type = request.type,
                 UserId = request.userId,
             };

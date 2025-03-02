@@ -113,7 +113,7 @@ namespace App.DataContext.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Keys")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

@@ -52,7 +52,7 @@ public class SetupTrelloCardsHandler(
               ""commands"": [
                 ""curl -X GET \""https://api.trello.com/1/members/me/boards?key=YOUR_TRELLO_API_KEY&token=YOUR_TRELLO_TOKEN\"""",
                 ""curl -X GET \""https://api.trello.com/1/boards/YOUR_BOARD_ID/lists?key=YOUR_TRELLO_API_KEY&token=YOUR_TRELLO_TOKEN\"""",
-                ""curl -X POST \""https://api.trello.com/1/cards\"" -H \""Content-Type: application/x-www-form-urlencoded\"" -d \""name=Fix critical bug&desc=Please fix the bug ASAP&idList=YOUR_LIST_ID&key=YOUR_TRELLO_API_KEY&token=YOUR_TRELLO_TOKEN\""""
+                ""curl -X POST \""https://api.trello.com/1/cards\"" -H \""Content-Keys: application/x-www-form-urlencoded\"" -d \""name=Fix critical bug&desc=Please fix the bug ASAP&idList=YOUR_LIST_ID&key=YOUR_TRELLO_API_KEY&token=YOUR_TRELLO_TOKEN\""""
               ]
             }}
 

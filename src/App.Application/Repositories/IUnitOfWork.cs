@@ -12,6 +12,8 @@ namespace App.Application.Repositories
 
         IRepository<Transaction> TransactionRepository { get; }
 
+        IRepository<Credential> CredentialsRepository { get; }
+
         Task SaveChangesAsync();
     }
 }
