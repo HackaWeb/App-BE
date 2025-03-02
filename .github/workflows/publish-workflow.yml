@@ -67,4 +67,5 @@ jobs:
             JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             OPEN_AI_API_KEY='${{ secrets.OPEN_AI_API_KEY }}' \
             TRELLO_API_KEY='${{ secrets.TRELLO_API_KEY}}' \
-            TRELLO_SECRET_KEY='${{ secrets.TRELLO_SECRET_KEY}}'
+            TRELLO_SECRET_KEY='${{ secrets.TRELLO_SECRET_KEY}}' \
+            SLACK_TOKEN='{{ secrets.SLACK_TOKEN }}'
