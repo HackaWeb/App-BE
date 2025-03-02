@@ -16,6 +16,12 @@ namespace App.Application.Handlers.Users
                 UserCredentialType = request.type, Value = request.value, UserId = request.userId,
             };
 
+            var userCreds = await unitOfWork.CredentialsRepository.Find(x => x.UserId == request.userId && x.UserCredentialType == request.type);
+            foreach (var cred in userCreds)
+            {
+                await unitOfWork.CredentialsRepository.Delete(cred);   
+            }
+
 
             await unitOfWork.CredentialsRepository.Add(creds);
             await unitOfWork.SaveChangesAsync();
