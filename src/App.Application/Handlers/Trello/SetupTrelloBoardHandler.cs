@@ -11,7 +11,7 @@ using System.Net;
 
 namespace App.Application.Handlers.Trello
 {
-    public record SetupTrelloBoardCommand(string UserRequest) : IRequest<string>;
+    public record SetupTrelloBoardCommand(string UserRequest, string trelloApiKey, string trelloToken) : IRequest<string>;
 
     public class SetupTrelloBoardHandler(
         IOpenAIService openAiService,
@@ -76,13 +76,14 @@ namespace App.Application.Handlers.Trello
                 {
                     if (apiRequest.Parameters.TryGetValue("key", out var keyVal))
                     {
-                        apiRequest.Parameters["key"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY)
-                                                       ?? trelloOptions.Value.TrelloApiKey;
+                        apiRequest.Parameters["key"] = boardCommand.trelloApiKey
+                                                       ?? Environment.GetEnvironmentVariable(
+                                                           AppConstants.TRELLO_API_KEY)!;
                     }
                     if (apiRequest.Parameters.TryGetValue("token", out var tokenVal))
                     {
-                        apiRequest.Parameters["token"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY)
-                                                         ?? trelloOptions.Value.TrelloSecret;
+                        apiRequest.Parameters["token"] = boardCommand.trelloToken
+                                                            ?? Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY)!;
                     }
                 }
 

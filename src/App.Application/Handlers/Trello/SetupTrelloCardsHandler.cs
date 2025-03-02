@@ -10,11 +10,11 @@ using Microsoft.Extensions.Options;
 
 namespace App.Application.Handlers.Trello;
 
-public record SetupTrelloCardsCommand(string UserRequest) : IRequest<string>;
+public record SetupTrelloCardsCommand(string UserRequest, string trelloApiKey, string trelloToken) : IRequest<string>;
 
 public class SetupTrelloCardsHandler(
     IOpenAIService openAiService,
-    IOptions<TrelloSettings> trelloOptions,
+    //IOptions<TrelloSettings> trelloOptions,
     HttpClient httpClient) : IRequestHandler<SetupTrelloCardsCommand, string>
 {
     public async Task<string> Handle(SetupTrelloCardsCommand request, CancellationToken cancellationToken)
@@ -103,14 +103,14 @@ public class SetupTrelloCardsHandler(
             {
                 if (apiRequest.Parameters.TryGetValue("key", out var keyVal))
                 {
-                    apiRequest.Parameters["key"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY)
-                                                   ?? trelloOptions.Value.TrelloApiKey;
+                    apiRequest.Parameters["key"] = request.trelloApiKey
+                                                    ?? Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY)!;
                 }
                 apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_API_KEY", Environment.GetEnvironmentVariable(AppConstants.TRELLO_API_KEY));
                 if (apiRequest.Parameters.TryGetValue("token", out var tokenVal))
                 {
-                    apiRequest.Parameters["token"] = Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY)
-                                                     ?? trelloOptions.Value.TrelloSecret;
+                    apiRequest.Parameters["token"] = request.trelloToken
+                                                        ?? Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY)!;
                 }
                 apiRequest.Url = apiRequest.Url.Replace("YOUR_TRELLO_TOKEN", Environment.GetEnvironmentVariable(AppConstants.TRELLO_SECRET_KEY));
             }

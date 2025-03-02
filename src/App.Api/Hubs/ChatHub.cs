@@ -3,6 +3,7 @@ using App.Application.Handlers;
 using App.Application.Handlers.Slack;
 using App.Application.Handlers.Transactions;
 using App.Application.Handlers.Trello;
+using App.Application.Repositories;
 using App.Application.Services;
 using App.Domain.Enums;
 using Azure.Core;
@@ -14,7 +15,8 @@ namespace App.Api.Hubs;
 
 public class ChatHub(
     IMediator mediator,
-    IUserService userService) : Hub
+    IUserService userService,
+    IUnitOfWork unitOfWork) : Hub
 {
     private static readonly ConcurrentDictionary<string, List<ChatMessage>> _chatHistory = new();
 
@@ -29,6 +31,14 @@ public class ChatHub(
         try
         {
             var user = await userService.GetByIdAsync(userId);
+            var credentials = await unitOfWork.CredentialsRepository.Find(x => x.UserId == user.Id);
+
+            if (credentials is null || !credentials.Any())
+            {
+                await Clients.Caller.SendAsync("ReceiveSystemMessage", $"please set your API keys.");
+                return;
+            }
+
             await mediator.Send(new AddTransactionCommand(DateTime.UtcNow, 1, Guid.Parse(userId), TransactionType.Withdrawal));
             var chatMessage = new ChatMessage() { Sender = user.FirstName ?? "User", SentAt = DateTime.UtcNow, Message = message, };
 
@@ -50,17 +60,21 @@ public class ChatHub(
 
                 if (thirdPartyType == ThirdPartyService.Slack)
                 {
-                    await mediator.Send(new SetupSlackCommand(message));
+                    var slackToken = credentials
+                        .FirstOrDefault(x => x.UserCredentialType == UserCredentialType.SlackToken).Value;
+                    await mediator.Send(new SetupSlackCommand(message, slackToken));
                 }
 
                 if (thirdPartyType == ThirdPartyService.Trello)
                 {
+                    var trelloToken = credentials.FirstOrDefault(x => x.UserCredentialType == UserCredentialType.TrelloSecret).Value;
+                    var trelloKey = credentials.FirstOrDefault(x => x.UserCredentialType == UserCredentialType.TrelloApiKey).Value;
                     var commandType = await mediator.Send(new IdentityTrelloCommand(message));
 
                     var t = commandType switch
                     {
-                        PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(message)),
-                        PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(message)),
+                        PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(message, trelloKey, trelloToken)),
+                        PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(message, trelloKey, trelloToken)),
                         _ => commandType.ToString()
                     };
                 }

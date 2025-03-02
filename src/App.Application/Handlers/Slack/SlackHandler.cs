@@ -9,7 +9,7 @@ using System.Text;
 
 namespace App.Application.Handlers.Slack
 {
-    public record SetupSlackCommand(string UserRequest) : IRequest<string>;
+    public record SetupSlackCommand(string UserRequest, string? slackToken) : IRequest<string>;
 
     public class SetupSlackHandler(
         IOpenAIService openAiService,
@@ -94,18 +94,18 @@ namespace App.Application.Handlers.Slack
 
                 if (apiRequest.Headers.TryGetValue("Authorization", out var authValue))
                 {
-                    apiRequest.Headers["Authorization"] = authValue.Replace("YOUR_SLACK_TOKEN", slackToken ?? slackOptions.Value.SlackToken);
+                    apiRequest.Headers["Authorization"] = authValue.Replace("YOUR_SLACK_TOKEN", command.slackToken ?? slackToken);
                 }
                 if (!string.IsNullOrEmpty(apiRequest.Body))
                 {
-                    apiRequest.Body = apiRequest.Body.Replace("YOUR_SLACK_TOKEN", slackToken ?? slackOptions.Value.SlackToken);
+                    apiRequest.Body = apiRequest.Body.Replace("YOUR_SLACK_TOKEN", command.slackToken ?? slackToken);
                 }
                 if (!string.IsNullOrEmpty(apiRequest.Url))
                 {
-                    apiRequest.Url = apiRequest.Url.Replace("YOUR_SLACK_TOKEN", slackToken ?? slackOptions.Value.SlackToken);
+                    apiRequest.Url = apiRequest.Url.Replace("YOUR_SLACK_TOKEN", command.slackToken ?? slackToken);
                 }
 
-                string result = await SlackHelper.ExecuteSlackRequestAsync(apiRequest, httpClient);
+                await SlackHelper.ExecuteSlackRequestAsync(apiRequest, httpClient);
                 aggregatedResponse.AppendLine($"Executed command: {curlCommand}");
             }
 

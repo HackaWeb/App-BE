@@ -17,30 +17,30 @@ public static class AiRoutes
             .WithName("OpenAI")
             .WithTags("OpenAI");
 
-        group.MapPost("/", async (SendMessageRequest request, IMediator mediator) =>
-            {
-                var thirdPartyType = await mediator.Send(new GetThirdPartyServiceCommand(request.Message));
+        //group.MapPost("/", async (SendMessageRequest request, IMediator mediator) =>
+        //    {
+        //        var thirdPartyType = await mediator.Send(new GetThirdPartyServiceCommand(request.Message));
 
-                if (thirdPartyType == ThirdPartyService.Slack)
-                {
-                    await mediator.Send(new SetupSlackCommand(request.Message));
-                    return;
-                }
+        //        if (thirdPartyType == ThirdPartyService.Slack)
+        //        {
+        //            await mediator.Send(new SetupSlackCommand(request.Message));
+        //            return;
+        //        }
 
-                if (thirdPartyType == ThirdPartyService.Trello)
-                {
-                    var commandType = await mediator.Send(new IdentityTrelloCommand(request.Message));
+        //        if (thirdPartyType == ThirdPartyService.Trello)
+        //        {
+        //            var commandType = await mediator.Send(new IdentityTrelloCommand(request.Message));
 
-                    var t = commandType switch
-                    {
-                        PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(request.Message)),
-                        PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(request.Message)),
-                        _ => commandType.ToString()
-                    };
-                }
-                //return botResponse;
-            })
-            .WithName("SendMessageToAI");
+        //            var t = commandType switch
+        //            {
+        //                PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(request.Message)),
+        //                PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(request.Message)),
+        //                _ => commandType.ToString()
+        //            };
+        //        }
+        //        //return botResponse;
+        //    })
+        //    .WithName("SendMessageToAI");
     }
 
 }
