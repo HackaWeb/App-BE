@@ -21,7 +21,7 @@ namespace App.Application.Handlers.Transactions
     {
         public async Task<List<Transaction>> Handle(GetAllTransactionsCommand request, CancellationToken cancellationToken)
         {
-            var transactions = await unitOfWork.TransactionRepository.GetAll();
+            var transactions = await unitOfWork.TransactionRepository.GetAll(true, "User");
 
             return transactions.OrderByDescending(x => x.TransactionDate).ToList();
         }
