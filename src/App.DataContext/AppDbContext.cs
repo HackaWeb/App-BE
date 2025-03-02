@@ -50,8 +50,18 @@ internal class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Transaction>()
+            .HasOne(c => c.User)
+            .WithMany(c => c.Transactions)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Credential>()
             .Property(c => c.UserCredentialType)
+            .HasConversion<string>();
+
+        builder.Entity<Transaction>()
+            .Property(c => c.Type)
             .HasConversion<string>();
 
         base.OnModelCreating(builder);

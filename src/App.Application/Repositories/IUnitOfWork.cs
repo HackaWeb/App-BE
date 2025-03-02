@@ -10,6 +10,8 @@ namespace App.Application.Repositories
 
         IRepository<Notification> NotificationRepository { get; }
 
+        IRepository<Transaction> TransactionRepository { get; }
+
         Task SaveChangesAsync();
     }
 }

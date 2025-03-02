@@ -12,7 +12,6 @@ namespace App.DataContext.Models
 
         [MaxLength(100)]
         public string? LastName { get; set; }
-
         public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? RefreshToken { get; set; }
@@ -21,5 +20,6 @@ namespace App.DataContext.Models
         public virtual List<Notification>? Notifications { get; set; }
         public virtual List<UserTag>? UserTags { get; set; }
         public virtual ICollection<Credential> Credentials { get; set; } = new List<Credential>();
+        public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }

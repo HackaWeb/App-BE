@@ -1,11 +1,12 @@
 ﻿using App.Application;
 using App.Application.Handlers;
+using App.Application.Handlers.Transactions;
 using App.Application.Handlers.Trello;
 using App.Application.Services;
+using App.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
-using static Google.Apis.Requests.BatchRequest;
 
 namespace App.Api.Hubs;
 
@@ -26,6 +27,7 @@ public class ChatHub(
         try
         {
             var user = await userService.GetByIdAsync(userId);
+            await mediator.Send(new AddTransactionCommand(DateTime.UtcNow, 1, Guid.Parse(userId), TransactionType.Withdrawal));
             var chatMessage = new ChatMessage() { Sender = user.FirstName ?? "User", SentAt = DateTime.UtcNow, Message = message, };
 
             _chatHistory.AddOrUpdate(userId, key => new List<ChatMessage> { chatMessage },

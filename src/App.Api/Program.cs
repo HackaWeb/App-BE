@@ -46,6 +46,7 @@ app.MapAuthRoutes();
 app.MapProfileRoutes();
 app.MapUserRoutes();
 app.MapAiRoutes();
+app.MapTransactiongRoutes();
 
 app.MapHub<ChatHub>("chat-hub");
 

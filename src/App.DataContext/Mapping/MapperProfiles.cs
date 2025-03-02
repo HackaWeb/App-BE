@@ -18,6 +18,9 @@ namespace App.DataContext.Mapping
 
             CreateMap<UserTag, Domain.Models.UserTag>()
                 .ReverseMap();
+
+            CreateMap<Transaction, Domain.Models.Transaction>()
+                .ReverseMap();
         }
     }
 }
