@@ -68,4 +68,4 @@ jobs:
             OPEN_AI_API_KEY='${{ secrets.OPEN_AI_API_KEY }}' \
             TRELLO_API_KEY='${{ secrets.TRELLO_API_KEY}}' \
             TRELLO_SECRET_KEY='${{ secrets.TRELLO_SECRET_KEY}}' \
-            SLACK_TOKEN='{{ secrets.SLACK_TOKEN }}'
+            SLACK_TOKEN='${{ secrets.SLACK_TOKEN }}'
