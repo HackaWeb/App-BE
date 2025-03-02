@@ -1,6 +1,8 @@
 ﻿using App.Application.Extensions;
+using App.Application.Repositories;
 using App.Application.Responses;
 using App.Application.Services;
+using App.Domain.Enums;
 using App.Domain.Exceptions;
 using App.Domain.Models;
 using MediatR;
@@ -12,6 +14,7 @@ public record ThirdPartyAuthCommand(string email, string? firstName, string? las
 
 public class ThirdPartyAuthHandler(
     IUserService userService,
+    IUnitOfWork unitOfWork,
     IJwtTokenService jwtTokenService) : IRequestHandler<ThirdPartyAuthCommand, TokenResponse>
 {
     public async Task<TokenResponse> Handle(ThirdPartyAuthCommand request, CancellationToken cancellationToken)
@@ -50,7 +53,18 @@ public class ThirdPartyAuthHandler(
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        var transaction = new Transaction()
+        {
+            Amount = 10,
+            TransactionDate = DateTime.UtcNow,
+            Balance = 10,
+            Type = TransactionType.Deposit,
+            UserId = user.Id
+        };
+
+        await unitOfWork.TransactionRepository.Add(transaction);
         await userService.UpdateAsync(user);
+        await unitOfWork.SaveChangesAsync();
 
         return new TokenResponse(token, refreshToken);
     }

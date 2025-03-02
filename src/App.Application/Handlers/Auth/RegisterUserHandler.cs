@@ -1,4 +1,5 @@
 ﻿using App.Application.Extensions;
+using App.Application.Repositories;
 using App.Application.Responses;
 using App.Application.Services;
 using App.Domain.Enums;
@@ -14,6 +15,7 @@ public record RegisterUserCommand(string email, string password) : IRequest<Toke
 public class RegisterUserHandler(
     IUserService userService,
     IJwtTokenService jwtTokenService,
+    IUnitOfWork unitOfWork,
     IOptions<JwtSettings> jwtTokenSettings) : IRequestHandler<RegisterUserCommand, TokenResponse>
 {
     public async Task<TokenResponse> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -35,7 +37,20 @@ public class RegisterUserHandler(
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.Now.AddDays(jwtTokenSettings.Value.RefreshTokenExpiryInDays);
 
+
+        var transaction = new Transaction()
+        {
+            Amount = 10,
+            TransactionDate = DateTime.UtcNow,
+            Balance = 10,
+            Type = TransactionType.Deposit,
+            UserId = user.Id
+        };
+
+        await unitOfWork.TransactionRepository.Add(transaction);
         await userService.UpdateAsync(user);
+        await unitOfWork.SaveChangesAsync();
+
         return new TokenResponse(token, refreshToken);
     }
 }

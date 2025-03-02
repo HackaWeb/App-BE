@@ -1,6 +1,8 @@
 ﻿using App.Application;
 using App.Application.Handlers;
+using App.Application.Handlers.Slack;
 using App.Application.Handlers.Trello;
+using App.Domain.Enums;
 using App.RestContracts.AI;
 using MediatR;
 
@@ -17,23 +19,26 @@ public static class AiRoutes
 
         group.MapPost("/", async (SendMessageRequest request, IMediator mediator) =>
             {
-                var commandType = await mediator.Send(new IdentityCommand(request.Message));
+                var thirdPartyType = await mediator.Send(new GetThirdPartyServiceCommand(request.Message));
 
-                string botResponse;
-                switch (commandType)
+                if (thirdPartyType == ThirdPartyService.Slack)
                 {
-                    case PromptCommands.AddCards:
-                        botResponse = await mediator.Send(new SetupTrelloCardsCommand(request.Message));
-                        break;
-                    case PromptCommands.CreateBord:
-                        botResponse = await mediator.Send(new SetupTrelloBoardCommand(request.Message));
-                        break;
-                    default:
-                        botResponse = commandType.ToString();
-                        break;
+                    await mediator.Send(new SetupSlackCommand(request.Message));
+                    return;
                 }
 
-                return botResponse;
+                if (thirdPartyType == ThirdPartyService.Trello)
+                {
+                    var commandType = await mediator.Send(new IdentityTrelloCommand(request.Message));
+
+                    var t = commandType switch
+                    {
+                        PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(request.Message)),
+                        PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(request.Message)),
+                        _ => commandType.ToString()
+                    };
+                }
+                //return botResponse;
             })
             .WithName("SendMessageToAI");
     }

@@ -19,7 +19,7 @@ public static class CredentialRoutes
         group.MapPost("/", async (CreateCredentialRequest request, HttpContext httpContext, IMediator mediator) =>
             {
                 var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                return await mediator.Send(new AddUserCredentialsCommand(request.Type, request.Value, Guid.Parse(userId)));
+                return await mediator.Send(new AddUserCredentialsCommand(request.KeyType, request.Value, Guid.Parse(userId)));
             })
             .WithName("AddCredentials")
             .RequireAuthorization();

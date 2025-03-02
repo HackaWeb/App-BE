@@ -1,4 +1,5 @@
-﻿using App.Application.Repositories;
+﻿using App.Application.Handlers.Slack;
+using App.Application.Repositories;
 using App.Application.Services;
 using App.DataContext.Mapping;
 using App.Domain;
@@ -75,6 +76,7 @@ public static class ServiceExtensions
         services.Configure<JwtSettings>(configuration.GetSection(nameof(JwtSettings)));
         services.Configure<OpenAISettings>(configuration.GetSection(nameof(OpenAISettings)));
         services.Configure<TrelloSettings>(configuration.GetSection(nameof(TrelloSettings)));
+        services.Configure<SlackSettings>(configuration.GetSection(nameof(SlackSettings)));
 
         services.AddAutoMapper(cfg =>
         {

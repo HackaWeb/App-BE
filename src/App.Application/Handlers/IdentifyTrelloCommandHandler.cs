@@ -5,11 +5,11 @@ using System.Net;
 
 namespace App.Application.Handlers
 {
-    public record IdentityCommand(string userMessage) : IRequest<PromptCommands>;
+    public record IdentityTrelloCommand(string userMessage) : IRequest<PromptCommands>;
 
-    public class IdentifyCommandHandler(IOpenAIService openAiService) : IRequestHandler<IdentityCommand, PromptCommands>
+    public class IdentifyTrelloCommandHandler(IOpenAIService openAiService) : IRequestHandler<IdentityTrelloCommand, PromptCommands>
     {
-        public async Task<PromptCommands> Handle(IdentityCommand request, CancellationToken cancellationToken)
+        public async Task<PromptCommands> Handle(IdentityTrelloCommand request, CancellationToken cancellationToken)
         {
             var classificationPrompt = $@"
                 You are an AI assistant that classifies user requests for Trello integration. Based on the following user request, return only one word indicating the action type. Use one of the following values:

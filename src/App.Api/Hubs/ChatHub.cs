@@ -1,9 +1,11 @@
 ﻿using App.Application;
 using App.Application.Handlers;
+using App.Application.Handlers.Slack;
 using App.Application.Handlers.Transactions;
 using App.Application.Handlers.Trello;
 using App.Application.Services;
 using App.Domain.Enums;
+using Azure.Core;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
@@ -41,23 +43,28 @@ public class ChatHub(
                     }
                     return existingList;
                 });
-            string botResponse;
+
+            string botResponse = default;
             try
             {
-                var commandType = await mediator.Send(new IdentityCommand(message));
+                var thirdPartyType = await mediator.Send(new GetThirdPartyServiceCommand(message));
 
-                
-                switch (commandType)
+                if (thirdPartyType == ThirdPartyService.Slack)
                 {
-                    case PromptCommands.AddCards:
-                        botResponse = await mediator.Send(new SetupTrelloCardsCommand(message));
-                        break;
-                    case PromptCommands.CreateBord:
-                        botResponse = await mediator.Send(new SetupTrelloBoardCommand(message));
-                        break;
-                    default:
-                        botResponse = commandType.ToString();
-                        break;
+                    await mediator.Send(new SetupSlackCommand(message));
+                    return;
+                }
+
+                if (thirdPartyType == ThirdPartyService.Trello)
+                {
+                    var commandType = await mediator.Send(new IdentityTrelloCommand(message));
+
+                    var t = commandType switch
+                    {
+                        PromptCommands.AddCards => await mediator.Send(new SetupTrelloCardsCommand(message)),
+                        PromptCommands.CreateBord => await mediator.Send(new SetupTrelloBoardCommand(message)),
+                        _ => commandType.ToString()
+                    };
                 }
             }
             catch (Exception ex)

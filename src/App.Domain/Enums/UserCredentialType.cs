@@ -3,6 +3,7 @@
     public enum UserCredentialType
     {
         TrelloApiKey,
-        TrelloSecret
+        TrelloSecret,
+        SlackToken
     }
 }
