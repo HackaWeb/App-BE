@@ -11,7 +11,7 @@ public class DeleteUserHandler(IUserService userService) : IRequestHandler<Delet
 {
     public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userService.GetByEmailAsync(request.userId);
+        var user = await userService.GetByIdAsync(request.userId);
         if (user == null)
         {
             throw new DomainException("User was not found", (int)HttpStatusCode.Unauthorized);
